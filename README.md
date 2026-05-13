@@ -10,17 +10,17 @@ Build a web-based system for:
 - Name – Role
 
 ## Tech Stack
-- Frontend:
-- Backend
-- Database:
-- AI:
+- Frontend: React
+- Backend: Node.js
+- Database: Supabase
+- AI: MediaPipe
 
 ## How to Run 
 1. ... 
 2. ...
 
 ## Current Status
-- Phase:
+- Phase: 1
 - What's working:
 - What's next:
 
