@@ -6,7 +6,7 @@
 - creating a short document about the project in general and all the technologies we will use in this project
 - creating UI designs with figma
 - gaze tracking options
-- tab trackig
+- tab tracking
 - code evaluation methods
 - checking out how supabase works
 
