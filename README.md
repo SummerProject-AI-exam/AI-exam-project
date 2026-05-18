@@ -6,23 +6,20 @@ Build a web-based system for:
 - exam monitoring
 - cheating detection (AI + browser tracking)
 
-## Team
-- Name – Role
-
 ## Tech Stack
 - Frontend: React
 - Backend: Node.js
 - Database: Supabase
-- AI: MediaPipe
+- AI: Face landmarker
 
 ## How to Run 
 1. ... 
 2. ...
 
 ## Current Status
-- Phase: 1
-- What's working:
-- What's next:
+- Week 2
+- What's done: Research, wireframes, and database
+- What's next: CSV import, and the main page for student and teacher
 
 ## Key Features
 - [ ] Authentication
