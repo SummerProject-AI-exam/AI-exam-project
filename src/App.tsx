@@ -1,10 +1,10 @@
-import FaceMeshViewer from "./components/FaceLandmarkerViewer";
+import FaceLandmarkerViewer from "./components/FaceLandmarkerViewer";
 
 function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#111", color: "#eee" }}>
       <h1 style={{ textAlign: "center", padding: "1rem" }}>
-        FaceMesh Demo
+        FaceLandmarker Demo
       </h1>
 
       {/* Center the viewer */}
@@ -15,7 +15,7 @@ function App() {
           width: "100%",
         }}
       >
-        <FaceMeshViewer />
+        <FaceLandmarkerViewer />
       </div>
     </div>
   );
