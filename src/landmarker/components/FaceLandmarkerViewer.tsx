@@ -15,7 +15,8 @@ export default function FaceLandmarkerViewer() {
   const { canvasRef, isLoaded, results } = useFaceLandmarker(videoRef);
   const faceCount = results?.faceLandmarks?.length ?? 0;
   const cameraReady = useCameraReady(videoRef);
-  const cameraBlocked = useCameraBlocked(videoRef);
+  const faceDetected = faceCount === 1;
+  const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
   const rawAlert = useRawAlerts({
@@ -26,7 +27,6 @@ export default function FaceLandmarkerViewer() {
   });
 
   const alert = useStableAlert(rawAlert);
-
 
   const { fps, updateFPS } = useFPS();
 

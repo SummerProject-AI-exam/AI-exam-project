@@ -21,11 +21,11 @@ export function useFaceLandmarker(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
       );
 
-      
+
       // Create FaceLandmarker
       landmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
-             // address of the AI model
+          // address of the AI model
           modelAssetPath:
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
         },
@@ -42,17 +42,17 @@ export function useFaceLandmarker(
           animationFrameId = requestAnimationFrame(render);
           return;
         }
-// take the video and canvas elemets
+        // take the video and canvas elemets
         const video = videoRef.current;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-// ensure everything is ready, camera, canvas and model
+        // ensure everything is ready, camera, canvas and model
         if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) {
           animationFrameId = requestAnimationFrame(render);
           return;
         }
-// canvas has to be the same size as video for the landmarks
+        // canvas has to be the same size as video for the landmarks
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
@@ -61,9 +61,9 @@ export function useFaceLandmarker(
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-if (detection.faceLandmarks?.length > 0) {
-  drawLandmarks(ctx, detection.faceLandmarks[0], canvas.width, canvas.height);
-}
+        if (detection.faceLandmarks?.length > 0) {
+          drawLandmarks(ctx, detection.faceLandmarks[0], canvas.width, canvas.height);
+        }
 
         animationFrameId = requestAnimationFrame(render);
       };
