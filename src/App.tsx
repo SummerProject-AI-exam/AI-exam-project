@@ -1,4 +1,4 @@
-import FaceLandmarkerViewer from "./components/FaceLandmarkerViewer";
+import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 
 function App() {
   return (

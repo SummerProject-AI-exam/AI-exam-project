@@ -1,11 +1,33 @@
 import { useEffect } from "react";
-import { useWebcam } from "./useWebcam";
-import { useFPS } from "./useFPS";
-import { useFaceLandmarker } from "./useFaceLandmarker";
+import { useWebcam } from "../hooks/useWebcam";
+import { useFPS } from "../hooks/useFPS";
+import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
+
+import { useCameraReady } from "../analysis/useCameraReady";
+import { useCameraBlocked } from "../analysis/useCameraBlocked";
+import { useCameraOff } from "../analysis/useCameraOff";
+import { useRawAlerts } from "../alerts/useRawAlerts";
+import { useStableAlert } from "../alerts/useStableAlert";
+import { AlertPanel } from "../ui/AlertPanel";
 
 export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results } = useFaceLandmarker(videoRef);
+  const faceCount = results?.faceLandmarks?.length ?? 0;
+  const cameraReady = useCameraReady(videoRef);
+  const cameraBlocked = useCameraBlocked(videoRef);
+  const cameraOff = useCameraOff(videoRef);
+
+  const rawAlert = useRawAlerts({
+    faceCount,
+    cameraReady,
+    cameraBlocked,
+    cameraOff,
+  });
+
+  const alert = useStableAlert(rawAlert);
+
+
   const { fps, updateFPS } = useFPS();
 
   // Start/stop webcam only
@@ -81,6 +103,7 @@ export default function FaceLandmarkerViewer() {
           transform: "scaleX(-1)",
         }}
       />
+      <AlertPanel alert={alert} />
     </div>
   );
 }

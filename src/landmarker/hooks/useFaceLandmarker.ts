@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
-import { drawLandmarks } from "./drawLandmarks";
+import { drawLandmarks } from "../utils/drawLandmarks";
 
 export function useFaceLandmarker(
   videoRef: React.RefObject<HTMLVideoElement | null>
@@ -31,7 +31,7 @@ export function useFaceLandmarker(
         },
         // runningModel for video, 1 face
         runningMode: "VIDEO",
-        numFaces: 1,
+        numFaces: 2,
       });
 
       setIsLoaded(true);
