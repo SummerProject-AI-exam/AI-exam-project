@@ -1,12 +1,21 @@
 import { useNavigate } from "react-router-dom";
 
-function TeacherNavbar() {
+type Props = {
+    onActiveCoursesClick: () => void
+}
+
+function TeacherNavbar({ onActiveCoursesClick }: Props) {
     const navigate = useNavigate()
+
+    const handleActiveCourses = () => {
+        navigate('/teacher')
+        onActiveCoursesClick()
+    }
 
 
     return (
         <div className="teacher-navbar">
-            <button onClick={() => navigate('/teacher')}>
+            <button onClick={handleActiveCourses}>
                 Active Courses
             </button>
             
