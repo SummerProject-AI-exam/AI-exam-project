@@ -10,6 +10,8 @@ function CreateCourseModal({ onClose }: Props) {
     const [courseName, setCourseName] = useState('')
     const [courseCode,  setCourseCode] = useState('')
     const [courseDescription, setCourseDescription] = useState('')
+    const [scheduledPublishDate, serScheduledPublishDate] = useState('')
+    const [courseEndDate, setCourseEndDate] = useState('')
 
     const handleSubmit = async () => {
         console.log('Submit clicked')
@@ -22,7 +24,9 @@ function CreateCourseModal({ onClose }: Props) {
                     course_name: courseName,
                     course_code: courseCode,
                     course_description: courseDescription,
-                    teacher_id: teacherId
+                    teacher_id: teacherId,
+                    scheduled_publish_date: scheduledPublishDate,
+                    course_end_date: courseEndDate
                 }
             ])
 
@@ -61,6 +65,20 @@ function CreateCourseModal({ onClose }: Props) {
                 placeholder="Course Description"
                 value={courseDescription}
                 onChange={(e) =>setCourseDescription(e.target.value)} />
+
+
+                <label>Sceduled Publish Date</label>
+                <input 
+                    type="datetime-local"
+                    value={scheduledPublishDate}
+                    onChange={(e) => serScheduledPublishDate(e.target.value)} />
+
+
+                <label>Course End Date</label>
+                <input
+                    type="datetime-local"
+                    value={courseEndDate}
+                    onChange={(e) => setCourseEndDate(e.target.value)} />
 
                 <div className="modal-buttons">
                     <button onClick={handleSubmit}>

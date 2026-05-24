@@ -50,3 +50,9 @@
   padding: 10px 16px;
   cursor: pointer;
 }
+
+.modal label {
+  font-weight: bold;
+  text-align: left;
+  margin-top: 10px;
+}
