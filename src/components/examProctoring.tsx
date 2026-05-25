@@ -36,17 +36,17 @@ const App = () => {
 
   return (
     <div style={styles.container}>
-      <h1>Exam Proctoring Demo</h1>
+      <h1>Exam Monitoring Demo</h1>
       
       {!isExamActive ? (
         <button onClick={startExam} style={styles.startButton}>
-          Start Exam
+          Click to start the exam
         </button>
       ) : (
         <div>
           <div style={styles.examArea}>
             <h2>Exam in Progress...</h2>
-            <p>Violations: <strong>{violationCount}</strong></p>
+            <p>Violation counter: <strong>{violationCount}</strong></p>
             <button onClick={stopExam} style={styles.stopButton}>
               Finish Exam
             </button>
