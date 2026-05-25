@@ -6,9 +6,9 @@ import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 import { useCameraReady } from "../analysis/useCameraReady";
 import { useCameraBlocked } from "../analysis/useCameraBlocked";
 import { useCameraOff } from "../analysis/useCameraOff";
-import { useRawAlerts } from "../alerts/useRawAlerts";
-import { useStableAlert } from "../alerts/useStableAlert";
 import { AlertPanel } from "../ui/AlertPanel";
+import { useAlerts } from "../alerts/useAlerts";
+
 
 export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
@@ -19,14 +19,12 @@ export default function FaceLandmarkerViewer() {
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
-  const rawAlert = useRawAlerts({
-    faceCount,
-    cameraReady,
-    cameraBlocked,
-    cameraOff,
-  });
-
-  const alert = useStableAlert(rawAlert);
+  const alert = useAlerts({
+  faceCount,
+  cameraReady,
+  cameraBlocked,
+  cameraOff,
+});
 
   const { fps, updateFPS } = useFPS();
 

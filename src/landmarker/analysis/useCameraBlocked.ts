@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-// --- Sharpness check ---
 function computeSharpness(
   data: Uint8ClampedArray,
   width: number,
@@ -27,9 +26,11 @@ function computeSharpness(
 export function useCameraBlocked(
   videoRef: React.RefObject<HTMLVideoElement | null>,
   faceDetected: boolean
-) {
+): boolean {
+  const [cameraBlocked, setCameraBlocked] = useState<boolean>(false);
 
-  const [cameraBlocked, setCameraBlocked] = useState(false);
+  const blockCounter = useRef<number>(0);
+  const BLOCK_THRESHOLD = 2; // 200ms debounce, enough to remove flicker
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -42,35 +43,29 @@ export function useCameraBlocked(
         return;
       }
 
-      // If video not ready, skip
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         setCameraBlocked(false);
         return;
       }
 
-      // Match canvas to video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Draw current frame
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Read pixel data
       const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-      // Compute average brightness
+      // brightness
       let sum = 0;
       for (let i = 0; i < frame.length; i += 4) {
-        // simple luminance approximation
         const r = frame[i];
         const g = frame[i + 1];
         const b = frame[i + 2];
         sum += (r + g + b) / 3;
       }
-
       const avgBrightness = sum / (frame.length / 4);
 
-      // --- Variance ---
+      // variance
       let sumVar = 0;
       let sumSqVar = 0;
       const n = frame.length / 4;
@@ -87,39 +82,38 @@ export function useCameraBlocked(
       const sharpness = computeSharpness(frame, canvas.width, canvas.height);
 
       let flatPixels = 0;
-
       for (let i = 0; i < frame.length; i += 4) {
         const r = frame[i];
         const g = frame[i + 1];
         const b = frame[i + 2];
-
         const v = (r + g + b) / 3;
 
-        // pixel is too dark OR too bright OR too uniform
-        if (v < 30 || v > 220 || Math.abs(r - g) < 10 && Math.abs(g - b) < 10) {
+        if (v < 10 || v > 245) {
           flatPixels++;
         }
       }
       const coverage = flatPixels / (frame.length / 4);
 
-      // STRONG BLOCK detection
       const isStrongBlock =
-        avgBrightness < 15 ||      // almost black
-        variance < 40 ||           // extremely uniform
-        sharpness < 120 ||         // almost no edges
-        coverage > 0.75;           // almost fully flat
+        avgBrightness < 15 ||
+        variance < 40 ||
+        sharpness < 20 ||
+        coverage > 0.90;
 
-      // PRIORITY RULE:
-      // If face is missing AND camera is NOT strongly blocked → it's NOT a camera block
-      if (!faceDetected && !isStrongBlock) {
+      if (!isStrongBlock) {
+        blockCounter.current = 0;
         setCameraBlocked(false);
         return;
       }
 
-      // Otherwise, cameraBlocked = strong block
-      setCameraBlocked(isStrongBlock);
+      if (isStrongBlock) {
+        blockCounter.current++;
+      } else {
+        blockCounter.current = 0;
+      }
 
-    }, 500);
+      setCameraBlocked(blockCounter.current >= BLOCK_THRESHOLD);
+    }, 100);
 
     return () => clearInterval(interval);
   }, [videoRef, faceDetected]);
