@@ -1,4 +1,4 @@
-import TeacherNavbar from "./components/TeacherNavbar";
+import TeacherNavbar from "../components/TeacherNavbar";
 
 function ReportsPage() {
     return (

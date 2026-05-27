@@ -67,7 +67,7 @@ function CreateCourseModal({ onClose }: Props) {
                 onChange={(e) =>setCourseDescription(e.target.value)} />
 
 
-                <label>Sceduled Publish Date</label>
+                <label>Scheduled Publish Date</label>
                 <input 
                     type="datetime-local"
                     value={scheduledPublishDate}

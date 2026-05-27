@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import TeacherNavbar from './components/TeacherNavbar'
-import CreateCourseModal from './components/CreateCourseModal'
-import { supabase } from './lib/supabase'
+import TeacherNavbar from '../components/TeacherNavbar'
+import CreateCourseModal from '../components/CreateCourseModal'
+import { supabase } from '../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 type Course = {
   id: string
@@ -14,6 +15,10 @@ type Course = {
 }
 
 function TeacherDashboard() {
+
+  const navigate = useNavigate()
+
+
   const [showModal, setShowModal] = useState(false)
   const [courses, setCourses] = useState<Course[]>([])
 
@@ -59,7 +64,11 @@ function TeacherDashboard() {
 
       <div className="course-list">
         {courses.map((course) => (
-          <div key={course.id} className="course-card">
+          <div 
+          key={course.id} 
+          className="course-card"
+          onClick={() => navigate(`/teacher/course/${course.id}`)}
+          >
             <h3>{course.course_name}</h3>
             <p>Code: {course.course_code}</p>
             <p>{course.course_description}</p>
