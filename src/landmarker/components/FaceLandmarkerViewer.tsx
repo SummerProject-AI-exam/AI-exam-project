@@ -9,6 +9,9 @@ import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
 import { useAlerts } from "../alerts/useAlerts";
 
+import { getDistanceStatus } from "../utils/getDistanceStatus";
+import "../styles/distance-indicator.css";
+import { useDistance } from "../hooks/useDistance";
 
 export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
@@ -18,13 +21,19 @@ export default function FaceLandmarkerViewer() {
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
+  const { getStatus } = useDistance();
+  const z = results?.faceLandmarks?.[0]?.[1]?.z ?? null;
+  const distanceStatus = getStatus(z);
+
+  console.log("Z:", results?.faceLandmarks?.[0]?.[1]?.z)
 
   const alert = useAlerts({
-  faceCount,
-  cameraReady,
-  cameraBlocked,
-  cameraOff,
-});
+    faceCount,
+    cameraReady,
+    cameraBlocked,
+    cameraOff,
+    distanceStatus,
+  });
 
   const { fps, updateFPS } = useFPS();
 
@@ -65,6 +74,13 @@ export default function FaceLandmarkerViewer() {
           Loading model…
         </div>
       )}
+
+      <div
+        className={`distance-indicator ${distanceStatus}`}
+      >
+        {distanceStatus.toUpperCase()}
+      </div>
+
 
       <div
         style={{

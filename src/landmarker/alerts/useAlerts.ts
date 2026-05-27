@@ -7,6 +7,7 @@ interface AlertInput {
   cameraReady: boolean;
   cameraBlocked: boolean;
   cameraOff: boolean;
+  distanceStatus: "close" | "far" | "normal";
 }
 
 export function useAlerts(input: AlertInput): AlertState | null {
