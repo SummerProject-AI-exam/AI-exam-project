@@ -11,10 +11,10 @@ interface AlertInput {
 }
 
 export function useAlerts(input: AlertInput): AlertState | null {
-  // 1. Get the raw alert type (flickery)
+  
   const rawAlert: AlertType | null = useRawAlerts(input);
 
-  // 2. Stabilize it and add timestamp
+
   const stableAlert = useStableAlert(rawAlert, 300);
 
   return stableAlert;

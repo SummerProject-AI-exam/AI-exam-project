@@ -1,27 +1,26 @@
-import { useRef } from "react";
+import { useMemo } from "react";
 
-export function useDistance() {
-  const baselineZ = useRef<number | null>(null);
-
-  function getStatus(z: number | null) {
-    if (z == null) return "normal";
-
-    // Initialize baseline when first face appears
-    if (baselineZ.current === null) {
-      baselineZ.current = z;
+export function useDistance(results: any): "close" | "far" | "normal" {
+  return useMemo(() => {
+    if (!results || !results.faceLandmarks || results.faceLandmarks.length !== 1) {
       return "normal";
     }
 
-    const base = baselineZ.current;
+    const lm = results.faceLandmarks[0];
+    const top = lm[10];
+    const bottom = lm[152];
 
-    // Compare relative change
-    const ratio = z / base;
+    if (!top || !bottom) return "normal";
 
-    if (ratio > 1.20) return "close";   // 20% closer
-    if (ratio < 0.80) return "far";     // 20% farther
+    const faceHeight = Math.abs(bottom.y - top.y);
+
+    // TEMPORARY thresholds for tomorrow's demo
+    // Less sensitive "close"
+    if (faceHeight > 0.52) return "close";
+
+    // More realistic "far"
+    if (faceHeight < 0.22) return "far";
 
     return "normal";
-  }
-
-  return { getStatus };
+  }, [results]);
 }

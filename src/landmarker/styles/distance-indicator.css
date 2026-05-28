@@ -10,14 +10,22 @@
   z-index: 9999;
 }
 
-.distance-indicator.normal {
+/* OK distance */
+.distance-indicator.ok {
   background: #2ecc71; /* green */
 }
 
-.distance-indicator.close {
+/* Too close */
+.distance-indicator.too_close {
   background: #e67e22; /* orange */
 }
 
-.distance-indicator.far {
+/* Too far */
+.distance-indicator.too_far {
   background: #3498db; /* blue */
+}
+
+/* No face / unknown */
+.distance-indicator.unknown {
+  background: #7f8c8d; /* grey */
 }

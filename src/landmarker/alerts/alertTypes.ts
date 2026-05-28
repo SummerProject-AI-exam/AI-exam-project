@@ -6,7 +6,6 @@ export type AlertType =
   | "CAMERA_NOT_READY"
   | "TOO_CLOSE"        
   | "TOO_FAR"          
-  | null;
 
 
 export interface AlertState {

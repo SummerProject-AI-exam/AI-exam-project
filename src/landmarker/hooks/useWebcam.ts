@@ -6,9 +6,10 @@ export function useWebcam() {
   const startCamera = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 320 },
-        height: { ideal: 240 },
-        frameRate: { ideal: 15, max: 15 }
+        facingMode: { ideal: "user" },
+        width: { ideal: 640, min: 320 },
+        height: { ideal: 480, min: 240 },
+        frameRate: { ideal: 15 }
       }
     });
 
