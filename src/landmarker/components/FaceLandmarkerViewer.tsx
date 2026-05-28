@@ -16,16 +16,23 @@ import { useDistance } from "../hooks/useDistance";
 export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results } = useFaceLandmarker(videoRef);
-  const faceCount = results?.faceLandmarks?.length ?? 0;
+
+  // ⭐ FIX: read detection from ref
+  const detection = results.current;
+
+  const faceCount = detection?.faceLandmarks?.length ?? 0;
   const cameraReady = useCameraReady(videoRef);
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
+
   const { getStatus } = useDistance();
-  const z = results?.faceLandmarks?.[0]?.[1]?.z ?? null;
+
+  // ⭐ FIX: read z from detection
+  const z = detection?.faceLandmarks?.[0]?.[1]?.z ?? null;
   const distanceStatus = getStatus(z);
 
-  console.log("Z:", results?.faceLandmarks?.[0]?.[1]?.z)
+  console.log("Z:", z);
 
   const alert = useAlerts({
     faceCount,
@@ -43,10 +50,12 @@ export default function FaceLandmarkerViewer() {
     return () => stopCamera();
   }, []);
 
-  // Update FPS whenever a new detection arrives
   useEffect(() => {
-    if (results) updateFPS();
-  }, [results]);
+    if (detection?.faceLandmarks) {
+      updateFPS();
+    }
+  }, [detection?.faceLandmarks]);
+
 
   return (
     <div
@@ -75,12 +84,9 @@ export default function FaceLandmarkerViewer() {
         </div>
       )}
 
-      <div
-        className={`distance-indicator ${distanceStatus}`}
-      >
+      <div className={`distance-indicator ${distanceStatus}`}>
         {distanceStatus.toUpperCase()}
       </div>
-
 
       <div
         style={{
@@ -117,6 +123,7 @@ export default function FaceLandmarkerViewer() {
           transform: "scaleX(-1)",
         }}
       />
+
       <AlertPanel alert={alert} />
     </div>
   );

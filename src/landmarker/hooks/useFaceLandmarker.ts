@@ -2,12 +2,29 @@ import { useEffect, useRef, useState } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { drawLandmarks } from "../utils/drawLandmarks";
 
+// smoothing
+const distanceBuffer: number[] = [];
+const MAX_BUFFER = 12; // ~0.2 seconds of smoothing
+
+function smoothDistance(zValue: number) {
+  distanceBuffer.push(zValue);
+
+  if (distanceBuffer.length > MAX_BUFFER) {
+    distanceBuffer.shift();
+  }
+
+  const sum = distanceBuffer.reduce((a, b) => a + b, 0);
+  return sum / distanceBuffer.length;
+}
+
 export function useFaceLandmarker(
   videoRef: React.RefObject<HTMLVideoElement | null>
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [results, setResults] = useState<any>(null);
+
+  // ⭐ FIX: use ref instead of state (no re-renders)
+  const resultsRef = useRef<any>(null);
 
   useEffect(() => {
     if (!videoRef || !videoRef.current) return;
@@ -16,25 +33,28 @@ export function useFaceLandmarker(
     let animationFrameId: number;
 
     async function init() {
-      // Load WASM (WebAssembly) runtime, to run fast code in browser
       const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
       );
 
-
-      // Create FaceLandmarker
       landmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
-          // address of the AI model
           modelAssetPath:
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
         },
-        // runningModel for video, 1 face
         runningMode: "VIDEO",
-        numFaces: 2,
+
+        // ⭐ SAFE SETTINGS — reduce load without losing features
+        numFaces: 1,
+        outputFaceBlendshapes: false,
+        outputFacialTransformationMatrixes: false,
       });
 
+
       setIsLoaded(true);
+
+      // ⭐ CORRECT: declare frameSkip OUTSIDE render()
+      let frameSkip = 0;
 
       // Start detection loop
       const render = () => {
@@ -42,28 +62,41 @@ export function useFaceLandmarker(
           animationFrameId = requestAnimationFrame(render);
           return;
         }
-        // take the video and canvas elemets
+
+        // ⭐ FPS throttle: skip every 2nd frame
+        frameSkip++;
+        if (frameSkip % 2 !== 0) {
+          animationFrameId = requestAnimationFrame(render);
+          return;
+        }
+
         const video = videoRef.current;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-        // ensure everything is ready, camera, canvas and model
         if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) {
           animationFrameId = requestAnimationFrame(render);
           return;
         }
-        // canvas has to be the same size as video for the landmarks
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
         const detection = landmarker.detectForVideo(video, performance.now());
-        setResults(detection);
+
+        // ⭐ FIX: store in ref, not state
+        resultsRef.current = detection;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (detection.faceLandmarks?.length > 0) {
-          drawLandmarks(ctx, detection.faceLandmarks[0], canvas.width, canvas.height);
-        }
+  // ⭐ TEST 1: disable drawing completely
+  // drawLandmarks(ctx, detection.faceLandmarks[0], canvas.width, canvas.height);
+
+  const rawZ = detection.faceLandmarks[0][1].z;
+  const smoothedZ = smoothDistance(rawZ);
+}
+
 
         animationFrameId = requestAnimationFrame(render);
       };
@@ -79,5 +112,6 @@ export function useFaceLandmarker(
     };
   }, []);
 
-  return { canvasRef, isLoaded, results };
+  // ⭐ Return ref instead of state
+  return { canvasRef, isLoaded, results: resultsRef };
 }
