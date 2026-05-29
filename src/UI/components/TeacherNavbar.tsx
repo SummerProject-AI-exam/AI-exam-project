@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase"
 
 type Props = {
     onActiveCoursesClick: () => void
@@ -10,6 +11,12 @@ function TeacherNavbar({ onActiveCoursesClick }: Props) {
     const handleActiveCourses = () => {
         navigate('/teacher')
         onActiveCoursesClick()
+    }
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut()
+
+        navigate('/')
     }
 
 
@@ -26,6 +33,12 @@ function TeacherNavbar({ onActiveCoursesClick }: Props) {
 
             <button onClick={() => navigate('/teacher/previous')}>
                 Previous Courses
+            </button>
+
+            <button
+                className="logout-btn" 
+                onClick={handleLogout}>
+                Logout
             </button>
         </div>
     )
