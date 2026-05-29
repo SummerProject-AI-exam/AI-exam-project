@@ -21,13 +21,13 @@ export default function FaceLandmarkerViewer() {
   const cameraOff = useCameraOff(videoRef);
   const distanceStatus = useDistance(results);
 
- const alert = useAlerts({
-  faceCount,
-  cameraReady,
-  cameraBlocked,
-  cameraOff,
-  distanceStatus,  
-});
+  const alert = useAlerts({
+    faceCount,
+    cameraReady,
+    cameraBlocked,
+    cameraOff,
+    distanceStatus,
+  });
 
 
   const { fps, updateFPS } = useFPS();
@@ -85,6 +85,35 @@ export default function FaceLandmarkerViewer() {
       >
         FPS: {fps}
       </div>
+
+
+      <div
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "0.8rem",
+          zIndex: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+        }}
+      >
+        <div
+          style={{
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
+            background: "#4caf50",
+          }}
+        />
+        Monitoring active
+      </div>
+
 
       <video
         ref={videoRef}
