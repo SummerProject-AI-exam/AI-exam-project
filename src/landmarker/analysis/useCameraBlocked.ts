@@ -30,7 +30,7 @@ export function useCameraBlocked(
   const [cameraBlocked, setCameraBlocked] = useState<boolean>(false);
 
   const blockCounter = useRef<number>(0);
-  const BLOCK_THRESHOLD = 2; // 200ms debounce, enough to remove flicker
+  const BLOCK_THRESHOLD = 2; 
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -55,7 +55,6 @@ export function useCameraBlocked(
 
       const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-      // brightness
       let sum = 0;
       for (let i = 0; i < frame.length; i += 4) {
         const r = frame[i];

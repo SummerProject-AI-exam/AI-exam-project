@@ -12,7 +12,6 @@ export function useCameraReady(videoRef: React.RefObject<HTMLVideoElement | null
         return;
       }
 
-      // Camera is ready when video has dimensions
       const ready = video.videoWidth > 0 && video.videoHeight > 0;
       setCameraReady(ready);
     }, 200);
