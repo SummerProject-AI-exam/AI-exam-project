@@ -46,10 +46,10 @@ function App() {
       {view === 'student-dashboard' && currentUser && (
         <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>
           <h1 style={{ color: '#007bff' }}>Student Dashboard</h1>
-          <h2>Welcome back, {currentUser.student_first_name}!</h2>
-          <p><strong>StudentEmail:</strong> {currentUser.student_email}</p>
+          <h2 style={{ color: '#007bff' }}>Welcome back, {currentUser.student_first_name}!</h2>
+          <p><strong>Student Email:</strong> {currentUser.student_email}</p>
           <p><strong>Student ID:</strong> {currentUser.student_id}</p>
-          <p><strong>Database UUID:</strong> {currentUser.id}</p>
+          {/* <p><strong>Database UUID:</strong> {currentUser.id}</p> */}
           <button 
             onClick={() => { setCurrentUser(null); setView('selection'); }} 
             style={{ padding: '10px 20px', marginTop: '20px', cursor: 'pointer' }}
@@ -62,9 +62,9 @@ function App() {
       {view === 'teacher-dashboard' && currentUser && (
         <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>
           <h1 style={{ color: '#28a745' }}>Teacher Dashboard</h1>
-          <h2>Welcome back, teacher!</h2>
+          <h2 style={{ color: '#28a745' }}>Welcome back, {currentUser.teacher_first_name}!</h2>
           <p><strong>Teacher Email:</strong> {currentUser.teacher_email}</p>
-          <p><strong>Database UUID:</strong> {currentUser.id}</p>
+          {/* <p><strong>Database UUID:</strong> {currentUser.id}</p> */}
           <button 
             onClick={() => { setCurrentUser(null); setView('selection'); }} 
             style={{ padding: '10px 20px', marginTop: '20px', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px' }}

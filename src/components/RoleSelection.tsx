@@ -11,13 +11,13 @@ const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelectRole}) => {
             <div style = {{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px'}}>
                 <button
                     onClick = {() => onSelectRole('teacher')}
-                    style = {{ padding: '10px 20px', fontSize: '18px', cursor: 'pointer'}}
+                    style = {{ padding: '10px 20px', fontSize: '18px', color: '#28a745', cursor: 'pointer'}}
                 >
                 Login as teacher
                 </button>
                 <button
                     onClick = {() => onSelectRole('student')}
-                    style = {{ padding: '10px 20px', fontSize: '18px', cursor: 'pointer'}}
+                    style = {{ padding: '10px 20px', fontSize: '18px', color: '#007bff', cursor: 'pointer'}}
                 >
                 Login as student
                 </button>
