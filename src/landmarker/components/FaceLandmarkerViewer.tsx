@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
 import { useFPS } from "../hooks/useFPS";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
@@ -7,6 +7,7 @@ import { useCameraBlocked } from "../analysis/useCameraBlocked";
 import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
 import { useAlerts } from "../alerts/useAlerts";
+import { checkCameraReadiness, type CameraStatus } from "../analysis/cameraReadiness";
 
 
 export default function FaceLandmarkerViewer() {
@@ -20,15 +21,37 @@ export default function FaceLandmarkerViewer() {
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
-  const alert = useAlerts(
-    {
-      faceCount,
-      cameraReady,
-      cameraBlocked,
-      cameraOff
-    },
+  const [readiness, setReadiness] = useState<CameraStatus | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const r = await checkCameraReadiness();
+      setReadiness(r);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  const cameraPermissionDenied = readiness?.permission === "blocked";
+  const cameraStreamFailed = readiness?.stream === "error";
+  const cameraImageBlack = readiness?.image === "black";
+  const cameraImageFrozen = readiness?.image === "frozen";
+
+  const alert = useAlerts({
+    faceCount,
+    cameraReady,
+    cameraBlocked,
+    cameraOff,
+
+    cameraPermissionDenied,
+    cameraStreamFailed,
+    cameraImageBlack,
+    cameraImageFrozen,
+  },
     sessionId
   );
+
 
 
   const { fps, updateFPS } = useFPS();

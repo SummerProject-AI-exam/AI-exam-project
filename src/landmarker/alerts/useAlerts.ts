@@ -9,7 +9,13 @@ interface AlertInput {
   cameraReady: boolean;
   cameraBlocked: boolean;
   cameraOff: boolean;
+
+  cameraPermissionDenied: boolean;
+  cameraStreamFailed: boolean;
+  cameraImageBlack: boolean;
+  cameraImageFrozen: boolean;
 }
+
 
 export function useAlerts(input: AlertInput, sessionId: string): AlertState | null {
   const rawAlert: AlertType | null = useRawAlerts(input);

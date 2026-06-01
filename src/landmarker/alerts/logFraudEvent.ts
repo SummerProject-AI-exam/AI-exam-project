@@ -8,7 +8,7 @@ export async function logFraudEvent({
   eventType: string;
 }) {
 
-    console.log("SUPABASE CLIENT:", supabase);
+  console.log("SUPABASE CLIENT:", supabase);
 
   console.log("LOGGING TO SUPABASE:", sessionId, eventType);
 

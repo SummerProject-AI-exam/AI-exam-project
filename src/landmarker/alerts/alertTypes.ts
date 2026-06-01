@@ -3,7 +3,11 @@ export type AlertType =
   | "MULTIPLE_FACES"
   | "CAMERA_OFF"
   | "CAMERA_BLOCKED"
-  | "CAMERA_NOT_READY";
+  | "CAMERA_NOT_READY"
+  | "CAMERA_PERMISSION_DENIED"
+  | "CAMERA_STREAM_FAILED"
+  | "CAMERA_IMAGE_BLACK"
+  | "CAMERA_IMAGE_FROZEN";
 
 export interface AlertState {
   type: AlertType;
