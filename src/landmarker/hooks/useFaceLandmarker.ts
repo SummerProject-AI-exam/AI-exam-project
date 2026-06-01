@@ -7,7 +7,7 @@ export function useFaceLandmarker(
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<any>(null);     const [cameraReady, setCameraReady] = useState(false);
 
   useEffect(() => {
     if (!videoRef || !videoRef.current) return;
@@ -29,7 +29,7 @@ export function useFaceLandmarker(
           modelAssetPath:
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
         },
-        // runningModel for video, 1 face
+        
         runningMode: "VIDEO",
         numFaces: 2,
       });
@@ -52,6 +52,11 @@ export function useFaceLandmarker(
           animationFrameId = requestAnimationFrame(render);
           return;
         }
+
+        if (!cameraReady) {
+          setCameraReady(true);
+        }
+
         // canvas has to be the same size as video for the landmarks
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -79,5 +84,5 @@ export function useFaceLandmarker(
     };
   }, []);
 
-  return { canvasRef, isLoaded, results };
+  return { canvasRef, isLoaded, results, cameraReady };
 }
