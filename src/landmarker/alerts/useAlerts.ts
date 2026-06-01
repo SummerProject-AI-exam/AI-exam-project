@@ -11,7 +11,7 @@ interface AlertInput {
   cameraOff: boolean;
 }
 
-export function useAlerts(input: AlertInput): AlertState | null {
+export function useAlerts(input: AlertInput, sessionId: string): AlertState | null {
   const rawAlert: AlertType | null = useRawAlerts(input);
   const stableAlert = useStableAlert(rawAlert, 300);
 
@@ -46,7 +46,7 @@ export function useAlerts(input: AlertInput): AlertState | null {
       console.log("ALERT FIRED:", stableAlert);
 
       void logFraudEvent({
-        sessionId: "af5d3e53-62bb-41a2-8587-edbd57e6f714",
+        sessionId,
         eventType
       });
 
