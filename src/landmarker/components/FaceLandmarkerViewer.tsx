@@ -10,6 +10,9 @@ import { useAlerts } from "../alerts/useAlerts";
 
 
 export default function FaceLandmarkerViewer() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("sessionId") ?? "";
+
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results, cameraReady } = useFaceLandmarker(videoRef);
   const faceCount = results?.faceLandmarks?.length ?? 0;
@@ -17,12 +20,16 @@ export default function FaceLandmarkerViewer() {
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
-  const alert = useAlerts({
-  faceCount,
-  cameraReady,
-  cameraBlocked,
-  cameraOff,
-});
+  const alert = useAlerts(
+    {
+      faceCount,
+      cameraReady,
+      cameraBlocked,
+      cameraOff
+    },
+    sessionId
+  );
+
 
   const { fps, updateFPS } = useFPS();
 
