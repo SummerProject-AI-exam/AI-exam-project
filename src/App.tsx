@@ -17,7 +17,7 @@ function App() {
       <Route path="/teacher/course/:id/assignments" element={<AssignmentPage />} />
       <Route path="/student" element={<StudentDashboard />} />
       
-       {/ FaceLandmarker demo */}
+       {/* FaceLandmarker demo */}
         <Route
           path="/monitor"
           element={
