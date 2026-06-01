@@ -3,7 +3,6 @@ import { useWebcam } from "../hooks/useWebcam";
 import { useFPS } from "../hooks/useFPS";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 
-import { useCameraReady } from "../analysis/useCameraReady";
 import { useCameraBlocked } from "../analysis/useCameraBlocked";
 import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
@@ -12,9 +11,8 @@ import { useAlerts } from "../alerts/useAlerts";
 
 export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
-  const { canvasRef, isLoaded, results } = useFaceLandmarker(videoRef);
+  const { canvasRef, isLoaded, results, cameraReady } = useFaceLandmarker(videoRef);
   const faceCount = results?.faceLandmarks?.length ?? 0;
-  const cameraReady = useCameraReady(videoRef);
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
@@ -28,13 +26,11 @@ export default function FaceLandmarkerViewer() {
 
   const { fps, updateFPS } = useFPS();
 
-  // Start/stop webcam only
   useEffect(() => {
     startCamera();
     return () => stopCamera();
   }, []);
 
-  // Update FPS whenever a new detection arrives
   useEffect(() => {
     if (results) updateFPS();
   }, [results]);
