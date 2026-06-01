@@ -6,6 +6,7 @@ import  CourseDetailsPage from './UI/pages/CourseDetailsPage'
 //import HomePage from './UI/pages/HomePage'
 import AssignmentPage from './UI/pages/AssignmentPage'
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
+import MonitoringDemo from './window_blur_focus/pages/MonitorDemo'
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
       <Route path="/teacher/course/:id" element={<CourseDetailsPage />} />
       <Route path="/teacher/course/:id/assignments" element={<AssignmentPage />} />
       <Route path="/student" element={<StudentDashboard />} />
+      
+      <Route path="/focus-monitor" element={<MonitoringDemo />} />
       
        {/* FaceLandmarker demo */}
         <Route
@@ -43,6 +46,7 @@ function App() {
       
     </Routes>
       
+ 
     </BrowserRouter>
   )
 }
