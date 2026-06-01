@@ -6,8 +6,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MonitoringDemo />} />
-        <Route path="/monitor" element={<MonitoringDemo />} />
+        <Route path="/focus-monitor" element={<MonitoringDemo />} />
       </Routes>
     </BrowserRouter>
   )

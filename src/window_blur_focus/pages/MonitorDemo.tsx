@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 
 function MonitoringDemo() {
     const [windowActive, setWindowActive] = useState(true)
-    //const [tabActive, setTabActive] = useState(true)
     const [events, setEvents] = useState<string[]>([])
     const[warning, setWarning] = useState(false)
-    const[violationDetected, setViolationDetected] = useState(false)
     const[showHistoryWarning, setShowHistoryWarning] = useState(false)
 
     const addEvent = (message: string) => {
@@ -14,61 +12,54 @@ function MonitoringDemo() {
     }
 
     useEffect(() =>{
+        let timer: ReturnType<typeof setTimeout>
+
         const handleBlur = () => {
+            console.log("BLUR FIRED")
             setWindowActive(false)
             setWarning(true)
             setShowHistoryWarning(false)
-            setViolationDetected(true)
             addEvent('Window lost focus')
         }
 
         const handleFocus = () => {
+            console.log("FOCUS FIRED")
             setWindowActive(true)
-            setWarning(false)
+            setWarning(true)
             setShowHistoryWarning(true)
-            //setViolationDetected(true)
             addEvent('Window regained focus')
+
+            //keep red warning for 3 seconds
+            timer = setTimeout(() => {
+                console.log("TIMER FIRED")
+                setWarning(false)
+            }, 3000)
         }
 
-        /*const handleVisibilityChange = () => {
-            if (document.hidden) {
-                setWarning(true)
-                setTabActive(false)
-                addEvent('Tab hidden / switched')
-            } else {
-                setTabActive(true)
-                setWarning(false)
-                addEvent('Tab active again')
-            }
-
-        } */
+        
 
         window.addEventListener('blur', handleBlur)
         window.addEventListener('focus', handleFocus)
-        //document.addEventListener('visibilitychange', handleVisibilityChange)
+        
 
         return () => {
             window.removeEventListener('blur', handleBlur)
             window.removeEventListener('focus', handleFocus)
-            //document.removeEventListener('visibilitychange', handleVisibilityChange)
+
+            if (timer) clearTimeout(timer)
+            
         }
     }, [])
 
     return (
         <div style={{ padding: '40px' }} >
-            <h1>Exam Monitoring Prototype</h1>
+            <h1>Exam Monitor</h1>
 
             <p>
                 window status: {''}
                 <strong>{windowActive ? 'ACTIVE' : 'INACTIVE'}</strong>
             </p>
-            <p>Warnig: {warning.toString()}</p>
-            <p>Violation: {violationDetected.toString()}</p>
-            {/*
-            <p>
-                Tab Status:{''}
-                <strong>{tabActive ? 'ACTIVE' : 'HIDDEN'}</strong>
-            </p> */}
+            
 
             {/* Traffic Light indicator */}
             <div
