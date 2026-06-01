@@ -91,7 +91,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ role, onBack, onLoginSuccess }) =
         
         // First time teacher logging in 
         else {
-          alert("First time here, teacher? Creating your profile automatically...");
+          alert("First time logging in? Creating your profile...");
 
           const { data: newTeacher, error: insertError } = await supabase
             .from('Teacher')
@@ -115,7 +115,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ role, onBack, onLoginSuccess }) =
           }
         }
       } catch (err) {
-        console.error('Unexpected error during teacher login flow:', err);
+        console.error('Unexpected error occured during teacher login flow:', err);
       } finally {
         setLoading(false);
       }
