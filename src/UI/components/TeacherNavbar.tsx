@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase"
 
 type Props = {
-    onActiveCoursesClick: () => void
+    onActiveCoursesClick?: () => void
 }
 
 function TeacherNavbar({ onActiveCoursesClick }: Props) {
@@ -10,7 +10,7 @@ function TeacherNavbar({ onActiveCoursesClick }: Props) {
 
     const handleActiveCourses = () => {
         navigate('/teacher')
-        onActiveCoursesClick()
+        onActiveCoursesClick?.()
     }
 
     const handleLogout = async () => {
