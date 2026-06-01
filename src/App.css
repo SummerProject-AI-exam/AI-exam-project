@@ -39,7 +39,7 @@ body {
   transition: 0.3s ease;
 }
 
-.teacher-navbar button:hoover {
+.teacher-navbar button:hover {
   background: #475569;
   transform: translateY(-2px);
 }
@@ -48,7 +48,7 @@ body {
   background: #ef4444 !important;
 }
 
-.logout-btn:hoover {
+.logout-btn:hover {
   background: #d62626 !important;
 }
 
@@ -148,3 +148,4 @@ body {
   margin-bottom: 20px;
   border-radius: 12px;
 }
+
