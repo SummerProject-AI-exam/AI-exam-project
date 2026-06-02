@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
+import { saveFraudEvent } from '../services/blurEventApi'
 
 function MonitoringDemo() {
+
+    const sessionId = '63cd50a6-deb3-4fdd-8290-fd9c0b0d5698'
+
+
     const [windowActive, setWindowActive] = useState(true)
     const [events, setEvents] = useState<string[]>([])
     const[warning, setWarning] = useState(false)
@@ -14,20 +19,40 @@ function MonitoringDemo() {
     useEffect(() =>{
         let timer: ReturnType<typeof setTimeout>
 
-        const handleBlur = () => {
+        const handleBlur = async () => {
             console.log("BLUR FIRED")
             setWindowActive(false)
             setWarning(true)
             setShowHistoryWarning(false)
             addEvent('Window lost focus')
+
+            await saveFraudEvent(
+                sessionId,
+                'WINDOW_BLUR',
+                0.9,
+                {
+                    source: 'window',
+                    action: 'blur'
+                }
+            )
         }
 
-        const handleFocus = () => {
+        const handleFocus = async () => {
             console.log("FOCUS FIRED")
             setWindowActive(true)
             setWarning(true)
             setShowHistoryWarning(true)
             addEvent('Window regained focus')
+
+            await saveFraudEvent(
+                sessionId,
+                'WINDOW_FOCUS',
+                0.5,
+                {
+                    source: 'window',
+                    action: 'focus'
+                }
+            )
 
             //keep red warning for 3 seconds
             timer = setTimeout(() => {
