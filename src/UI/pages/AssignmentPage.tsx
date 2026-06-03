@@ -1,27 +1,52 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CreateAssignmentModal from "../components/CreateAssignmentModal"
+import { supabase } from "../lib/supabase"
+import TeacherNavbar from "../components/TeacherNavbar";
+
+type Assignment = {
+    id: string
+    title: string
+    description: string
+    assignment_type: string
+    due_date: string
+    total_marks: number
+    is_active: boolean
+}
 
 function AssignmentPage() {
 
     const navigate = useNavigate()
     const { id } = useParams()
 
-    console.log('Assignment course id:', id)
+    //console.log('Assignment course id:', id)
 
     const [showModal, setShowModal] = useState(false)
+    const [assignments, setAssignments] = useState<Assignment[]>([])
+
+    useEffect(() => {
+        const fetchAssignments = async () => {
+            const { data, error } = await supabase
+                .from("Assignment")
+                .select("*")
+                .eq("course_id", id)
+                .order("created_at", { ascending: false })
+
+            if (error) {
+                console.error("Error fetching assignments:", error)
+                return
+            }
+            
+            setAssignments(data || [])
+        }
+
+        fetchAssignments()
+    }, [id])
 
 
     return (
         <div>
-            <div className="assignment-top-bar">
-                <button onClick={() => navigate(`/teacher/course/${id}`)}>
-                    Back to course
-                </button>
-                <button>
-                    LogOut
-                </button>
-            </div>
+            <TeacherNavbar />
 
             <h1>Assignments</h1>
 
@@ -37,12 +62,32 @@ function AssignmentPage() {
             )}
 
             <div className="assignment-list">
-                <div className="assignment-card">
-                    Assignment 1
-                </div>
-                <div className="assignment-card">
-                    Assignment 2
-                </div>
+                {assignments.map((assignment) =>(
+                    <div
+                        key={assignment.id}
+                        className="assignment-card"
+                    >
+                        <h3>{assignment.title}</h3>
+
+                        <p>{assignment.description}</p>
+
+                        <div className="assignment-meta">
+                           <span>{assignment.assignment_type}</span> 
+                        
+
+                            <span>
+                                Due:{""}
+                                {new Date(assignment.due_date).toLocaleDateString("en-GB")}
+                            </span>
+
+                            <span>
+                                Status:{""}
+                                {assignment.is_active?"Active":"Inactive"}
+                            </span>
+                        </div>
+                    </div>    
+                ))}
+                
             </div>
 
         </div>

@@ -13,14 +13,32 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
     const [dueDate, setDueDate] = useState('')
     const [isActive, setIsActive] = useState(true)
     const [totalMarks, setTotalMarks] = useState('')
+    const [publishDate, setPublishDate] = useState('')
     
 
     const handleSubmit = async () => {
 
-        if (!title || !dueDate || !totalMarks) {
+        if (!title || !publishDate || !dueDate || !totalMarks) {
             alert('Please fill all required fields')
             return
         }
+
+        // Validate dates
+
+        const now = new Date()
+
+        if (new Date(publishDate) < now) {
+            alert('Publish date cannot be a past date')
+            return
+        }
+
+        
+        if (new Date(publishDate) > new Date(dueDate)) {
+            alert('Publish date cannot be after due date')
+            return
+        }
+
+
         const { error } = await supabase
             .from('Assignment')
             .insert([
@@ -29,6 +47,7 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                     title: title,
                     description: description,
                     assignment_type: assignmentType,
+                    publish_date: publishDate,
                     due_date: dueDate,
                     is_active: isActive,
                     total_marks: Number(totalMarks)
@@ -69,6 +88,14 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                     <option value="Code based">Code </option>
                     
                     </select>
+
+                <label>
+                    Publish Date
+                    <input
+                        type="datetime-local"
+                        value={publishDate}
+                        onChange={(e) => setPublishDate(e.target.value)} />
+                </label>
                 <label>
                     Due Date
                 <input
