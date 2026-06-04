@@ -1,8 +1,9 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react'
 import CreateAssignmentModal from "../components/CreateAssignmentModal"
 import { supabase } from "../lib/supabase"
 import TeacherNavbar from "../components/TeacherNavbar";
+
 
 type Assignment = {
     id: string
@@ -10,37 +11,63 @@ type Assignment = {
     description: string
     assignment_type: string
     due_date: string
+    publish_date: string
     total_marks: number
     is_active: boolean
 }
 
 function AssignmentPage() {
 
-    const navigate = useNavigate()
+    //const navigate = useNavigate()
     const { id } = useParams()
 
     //console.log('Assignment course id:', id)
 
     const [showModal, setShowModal] = useState(false)
     const [assignments, setAssignments] = useState<Assignment[]>([])
+    const [courseName, setCourseName] = useState('')
+
+    
+    const fetchAssignments = async () => {
+        const { data, error } = await supabase
+            .from("Assignment")
+            .select("*")
+            .eq("course_id", id)
+            .order("created_at", { ascending: false })
+
+        if (error) {
+            console.error("Error fetching assignments:", error)
+            return
+        }
+            
+        setAssignments(data || [])
+    }
 
     useEffect(() => {
-        const fetchAssignments = async () => {
+        fetchAssignments()
+    }, [id])
+
+    useEffect(() => {
+        const fetchCourse = async () => {
             const { data, error } = await supabase
-                .from("Assignment")
-                .select("*")
-                .eq("course_id", id)
-                .order("created_at", { ascending: false })
+                .from('Course')
+                .select('course_name')
+                .eq('id', id)
+                .single()
 
             if (error) {
-                console.error("Error fetching assignments:", error)
+                console.error(error)
                 return
             }
+
+            if (data) {
+                setCourseName(data.course_name)
+            }
             
-            setAssignments(data || [])
+            
         }
 
-        fetchAssignments()
+        fetchCourse()
     }, [id])
 
 
@@ -48,9 +75,11 @@ function AssignmentPage() {
         <div>
             <TeacherNavbar />
 
-            <h1>Assignments</h1>
+            <h1>{courseName} Assignments</h1>
 
-            <button onClick={() => setShowModal(true)}>
+            <button
+                className="create-assignment-btn" 
+                onClick={() => setShowModal(true)}>
                 Create Assignment
             </button>
 
@@ -58,6 +87,7 @@ function AssignmentPage() {
                 <CreateAssignmentModal
                     courseId={id!}
                     onClose={() => setShowModal(false)}
+                    onCreated={fetchAssignments}
                 />
             )}
 
@@ -73,6 +103,13 @@ function AssignmentPage() {
 
                         <div className="assignment-meta">
                            <span>{assignment.assignment_type}</span> 
+
+                           <span>
+                                Publish:{""}
+                                {assignment.publish_date
+                                    ? new Date(assignment.publish_date).toLocaleDateString("en-GB")
+                                    : "Not scheduled"}
+                            </span>
                         
 
                             <span>
@@ -80,10 +117,13 @@ function AssignmentPage() {
                                 {new Date(assignment.due_date).toLocaleDateString("en-GB")}
                             </span>
 
+                            
+                                
+                            {/*
                             <span>
                                 Status:{""}
                                 {assignment.is_active?"Active":"Inactive"}
-                            </span>
+                            </span> */}
                         </div>
                     </div>    
                 ))}

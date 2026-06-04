@@ -4,14 +4,15 @@ import { supabase } from '../lib/supabase'
 type Props = {
     courseId: string
     onClose: () => void
+    onCreated: () => void
 }
 
-function CreateAssignmentModal({ courseId, onClose }: Props) {
+function CreateAssignmentModal({ courseId, onClose, onCreated }: Props) {
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [assignmentType, setAssignmentType] = useState('MCQ')
     const [dueDate, setDueDate] = useState('')
-    const [isActive, setIsActive] = useState(true)
+    //const [isActive, setIsActive] = useState(true)
     const [totalMarks, setTotalMarks] = useState('')
     const [publishDate, setPublishDate] = useState('')
     
@@ -38,6 +39,11 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
             return
         }
 
+        //const now = new Date()
+
+        //const isActive = new Date(publishDate) <= now && new Date(dueDate) >= now
+        const isActive = true
+
 
         const { error } = await supabase
             .from('Assignment')
@@ -61,6 +67,7 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
         }
 
         alert('Assignment created successfully')
+        onCreated()
         onClose()
     }
 
@@ -108,14 +115,14 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                         placeholder="Total Marks"
                         value={totalMarks}
                         onChange={(e) => setTotalMarks(e.target.value)}  />
-
+                {/*
                 <label>
                     <input
                         type="checkbox"
                         checked={isActive}
                         onChange={(e) => setIsActive(e.target.checked)} />
                     Published Immediately
-                </label>
+                </label>*/}
 
                 <div className="modal-buttons">
                     <button onClick={handleSubmit}>

@@ -27,7 +27,7 @@ body {
 }
 
 .teacher-navbar button {
-  background: #334155;
+  background: #F98012;
   color: white;
 
   border: none;
@@ -191,4 +191,23 @@ body {
   flex-wrap: wrap;
   color: #64748b;
   font-size: 14px;
+}
+
+.create-course-btn,
+.create-assignment-btn {
+  background: #F98012;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.create-course-btn:hover,
+.create-assignment-btn:hover {
+  background: #E56F00;
+  transform: translateY(-2px);
 }
