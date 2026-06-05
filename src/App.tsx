@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import RoleSelection from './components/RoleSelection';
-import LoginForm from './components/LoginForm';
+import RoleSelection from './UI/components/RoleSelection';
+import LoginForm from './UI/components/LoginForm';
 
 import TeacherDashboard from './UI/pages/TeacherDashboard';
 import StudentDashboard from './UI/pages/StudentDashboard';
