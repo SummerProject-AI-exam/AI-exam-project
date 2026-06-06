@@ -27,7 +27,11 @@ function TeacherDashboard() {
   }, [])
 
   const fetchActiveCourses = async () => {
-    const teacherId = '32d961cf-b8ff-4e85-8c77-ab151c47e937'
+    const currentUser = JSON.parse(
+      sessionStorage.getItem('currentUser') || '{}'
+    )
+    const teacherId = currentUser.id
+    //const teacherId = '32d961cf-b8ff-4e85-8c77-ab151c47e937'
     const now = new Date().toISOString()
 
     const { data, error } = await supabase

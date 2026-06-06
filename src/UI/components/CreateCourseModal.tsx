@@ -15,7 +15,10 @@ function CreateCourseModal({ onClose }: Props) {
 
     const handleSubmit = async () => {
         console.log('Submit clicked')
-        const teacherId = '32d961cf-b8ff-4e85-8c77-ab151c47e937'
+        const currentUser = JSON.parse(
+            sessionStorage.getItem('currentUser') || '{}'
+        )
+        const teacherId = currentUser.id
 
         const { data, error } = await supabase
             .from('Course')
