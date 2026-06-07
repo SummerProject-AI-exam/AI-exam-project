@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase'
 
 type Props = {
     onClose: () => void
+    onCreated: () => void
 }
 
-function CreateCourseModal({ onClose }: Props) {
+function CreateCourseModal({ onClose, onCreated }: Props) {
     const [courseName, setCourseName] = useState('')
     const [courseCode,  setCourseCode] = useState('')
     const [courseDescription, setCourseDescription] = useState('')
@@ -41,7 +42,8 @@ function CreateCourseModal({ onClose }: Props) {
 
             console.log(data)
             alert('Course created succefully')
-
+        
+        onCreated()
         onClose()
 
     }

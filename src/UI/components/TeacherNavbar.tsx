@@ -3,14 +3,22 @@ import { supabase } from "../lib/supabase"
 
 type Props = {
     onActiveCoursesClick?: () => void
+    onPreviousCoursesClick?: () => void
 }
 
-function TeacherNavbar({ onActiveCoursesClick }: Props) {
+function TeacherNavbar({ 
+    onActiveCoursesClick,
+    onPreviousCoursesClick }: Props) {
     const navigate = useNavigate()
 
     const handleActiveCourses = () => {
         navigate('/teacher')
         onActiveCoursesClick?.()
+    }
+
+    const handlePreviousCourses = () => {
+        navigate('/teacher?view=previous')
+        onPreviousCoursesClick?.()
     }
 
     const handleLogout = async () => {
@@ -31,7 +39,7 @@ function TeacherNavbar({ onActiveCoursesClick }: Props) {
                 Reports
             </button>
 
-            <button onClick={() => navigate('/teacher/previous')}>
+            <button onClick={handlePreviousCourses}>
                 Previous Courses
             </button>
 

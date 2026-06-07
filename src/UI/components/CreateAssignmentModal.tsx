@@ -4,23 +4,41 @@ import { supabase } from '../lib/supabase'
 type Props = {
     courseId: string
     onClose: () => void
+    onCreated: () => void
 }
 
-function CreateAssignmentModal({ courseId, onClose }: Props) {
+function CreateAssignmentModal({ courseId, onClose, onCreated }: Props) {
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [assignmentType, setAssignmentType] = useState('MCQ')
     const [dueDate, setDueDate] = useState('')
-    const [isActive, setIsActive] = useState(true)
+    //const [isActive, setIsActive] = useState(true)
     const [totalMarks, setTotalMarks] = useState('')
+    const [publishDate, setPublishDate] = useState('')
     
 
     const handleSubmit = async () => {
 
-        if (!title || !dueDate || !totalMarks) {
+        if (!title || !publishDate || !dueDate || !totalMarks) {
             alert('Please fill all required fields')
             return
         }
+
+        //Validate Dates
+        const now = new Date()
+
+        if (new Date(publishDate) < now) {
+            alert('Publish date cannot be a past date')
+            return
+        }
+
+        if (new Date(publishDate) > new Date(dueDate)) {
+            alert('Publish date cannot be after due date')
+            return
+        }
+
+        const isActive = true
+
         const { error } = await supabase
             .from('Assignment')
             .insert([
@@ -29,6 +47,7 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                     title: title,
                     description: description,
                     assignment_type: assignmentType,
+                    publish_date: publishDate,
                     due_date: dueDate,
                     is_active: isActive,
                     total_marks: Number(totalMarks)
@@ -42,7 +61,9 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
         }
 
         alert('Assignment created successfully')
+        onCreated()
         onClose()
+        
     }
 
     return (
@@ -70,6 +91,13 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                     
                     </select>
                 <label>
+                    Publish Date
+                    <input
+                        type="datetime-local"
+                        value={publishDate}
+                        onChange={(e) => setPublishDate(e.target.value)} />
+                </label>
+                <label>
                     Due Date
                 <input
                     type="datetime-local"
@@ -81,14 +109,14 @@ function CreateAssignmentModal({ courseId, onClose }: Props) {
                         placeholder="Total Marks"
                         value={totalMarks}
                         onChange={(e) => setTotalMarks(e.target.value)}  />
-
+                {/*}
                 <label>
                     <input
                         type="checkbox"
                         checked={isActive}
                         onChange={(e) => setIsActive(e.target.checked)} />
                     Published Immediately
-                </label>
+                </label>*/}
 
                 <div className="modal-buttons">
                     <button onClick={handleSubmit}>
