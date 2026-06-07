@@ -6,6 +6,5 @@ export type ReadinessAlertType =
   | "CALIBRATION_NOT_READY"
   | "LOW_LIGHTING"
   | "FRAME_FROZEN"
-  | "BLACK_FRAME"
   | "FRAME_QUALITY_LOW"
   | "READY";

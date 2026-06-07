@@ -1,29 +1,39 @@
 import type { ReadinessAlertType } from "./alertTypesReadiness";
-import { useCameraOff } from "../analysis/useCameraOff";
-import { useCameraReady } from "../analysis/useCameraReady";
-import { useCameraBlocked } from "../analysis/useCameraBlocked";
-import { useFrameFrozen } from "../analysis/useFrameFrozen";
-import { useLightingQuality } from "../analysis/useLightingQuality";
+
 import { analyzeFacePresence } from "../analysis/analyzeFacePresence";
 import { useFaceStability } from "../analysis/useFaceStability";
 import { analyzeCalibration } from "../analysis/useCalibration";
 
-export function useReadinessAlerts(
-  videoRef: React.RefObject<HTMLVideoElement | null>,
-  faceLandmarks: any
-) {
+type ReadinessInput = {
+  videoRef: React.RefObject<HTMLVideoElement>;
+  faceLandmarks: any[];
+  faceCount: number;
+
+  // Phase 2 signals reused
+  cameraReady: boolean;
+  cameraBlocked: boolean;
+  cameraOff: boolean;
+
+  // Phase 1 signals
+  frameFrozen: boolean;
+  lighting: "good" | "bad" | "dark" | string;
+};
+
+export function useReadinessAlerts(input: ReadinessInput) {
+  const {
+    videoRef,
+    faceLandmarks,
+    faceCount,
+    cameraReady,
+    cameraBlocked,
+    cameraOff,
+    frameFrozen,
+    lighting,
+  } = input;
+
   const alerts: ReadinessAlertType[] = [];
 
-  // cast once for old hooks
-  const videoRefNonNull = videoRef as React.RefObject<HTMLVideoElement>;
-
   // 1. CAMERA SIGNALS
-  const cameraOff = useCameraOff(videoRefNonNull);
-  const cameraReady = useCameraReady(videoRefNonNull);
-  const cameraBlocked = useCameraBlocked(videoRefNonNull, false);
-  const frameFrozen = useFrameFrozen(videoRefNonNull);
-  const lighting = useLightingQuality(videoRefNonNull);
-
   if (cameraOff) alerts.push("CAMERA_OFF");
   if (!cameraOff && !cameraReady) alerts.push("CAMERA_PERMISSION_DENIED");
   if (cameraBlocked) alerts.push("CAMERA_BLOCKED");
@@ -36,7 +46,7 @@ export function useReadinessAlerts(
   if (!face.faceDetected) alerts.push("NO_FACE");
   if (face.faceDetected && !face.stable) alerts.push("FRAME_QUALITY_LOW");
 
-  // 3. FACE JITTER
+  // 3. FACE JITTER (extra stability check)
   const faceUnstable = useFaceStability(faceLandmarks);
   if (faceUnstable) alerts.push("FRAME_QUALITY_LOW");
 

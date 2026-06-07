@@ -1,10 +1,11 @@
-import { ReadinessViewer } from "../landmarker/components/ReadinessViewer";
+import { CombinedViewer } from "../landmarker/components/ReadinessViewer";
 
 export default function ReadinessTest() {
+  console.log("ReadinessTest mounted");
   return (
     <div style={{ padding: 20 }}>
       <h1>Readiness Test</h1>
-      <ReadinessViewer />
+      <CombinedViewer />
     </div>
   );
 }
