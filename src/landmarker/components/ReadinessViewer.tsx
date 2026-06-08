@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 
@@ -10,17 +10,46 @@ import { useLightingQuality } from "../analysis/useLightingQuality";
 import { useReadinessAlerts } from "../readinessAlerts/useReadinessAlerts";
 import { useCameraReady } from "../analysis/useCameraReady";
 
+
+function useVideoTimestampFrozen(videoRef: React.RefObject<HTMLVideoElement>) {
+  const [frozen, setFrozen] = useState(false);
+  const lastTimeRef = useRef<number>(0);
+  const lastCheckRef = useRef<number>(performance.now());
+
+  useEffect(() => {
+    const check = () => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      const now = performance.now();
+      const dt = now - lastCheckRef.current;
+
+      if (dt > 300) {
+        const current = video.currentTime;
+        setFrozen(current === lastTimeRef.current);
+        lastTimeRef.current = current;
+        lastCheckRef.current = now;
+      }
+
+      requestAnimationFrame(check);
+    };
+
+    requestAnimationFrame(check);
+  }, [videoRef]);
+
+  return frozen;
+}
+
+
 export function CombinedViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const videoRefNonNull = videoRef as React.RefObject<HTMLVideoElement>;
 
-  // ⭐ NEW: Track when Phase 1 is finished
   const [phase1Done, setPhase1Done] = useState(false);
 
-  // ⭐ Phase 1 uses slow FPS + auto-stop
   const { canvasRef, results } = useFaceLandmarker(videoRefNonNull, {
     fps: 10,
-    maxDurationMs: 6000, // 6 seconds for reliable calibration
+    maxDurationMs: 6000,
   });
 
   const cameraReady = useCameraReady(videoRefNonNull);
@@ -28,12 +57,14 @@ export function CombinedViewer() {
   const faceLandmarks = results?.faceLandmarks ?? [];
   const faceCount = faceLandmarks.length;
 
-  const faceDetected = faceCount === 1;
+  const faceDetected = faceCount >= 1;
 
   const cameraBlocked = useCameraBlocked(videoRefNonNull, faceDetected);
   const cameraOff = useCameraOff(videoRefNonNull);
   const frameFrozen = useFrameFrozen(videoRefNonNull);
   const lighting = useLightingQuality(videoRefNonNull);
+
+  const videoTimestampFrozen = useVideoTimestampFrozen(videoRefNonNull);
 
   const readiness = useReadinessAlerts({
     videoRef: videoRefNonNull,
@@ -46,32 +77,66 @@ export function CombinedViewer() {
     lighting,
   });
 
-  // ⭐ Start camera on mount
+  const [freezeStart, setFreezeStart] = useState<number | null>(null);
+
   useEffect(() => {
     startCamera();
     return () => stopCamera();
   }, []);
 
-  // ⭐ NEW: Early-stop when READY becomes true
   useEffect(() => {
-    if (readiness.ok && !phase1Done) {
-      console.log("Phase 1: READY early, stopping");
+    if (!phase1Done && readiness.ok) {
       stopCamera();
       setPhase1Done(true);
     }
   }, [readiness.ok, phase1Done, stopCamera]);
 
-  // ⭐ NEW: Detect when auto-stop happened (results stop updating)
   useEffect(() => {
-    if (!cameraReady && results === null && !phase1Done) {
-      // Phase 1 ended due to timeout
+    if (phase1Done) return;
+
+    const now = performance.now();
+
+    const frozen =
+      frameFrozen ||
+      videoTimestampFrozen ||
+      cameraBlocked ||
+      cameraOff ||
+      faceCount === 0 ||        
+      lighting === "dark";
+
+    if (frozen) {
+      if (freezeStart === null) setFreezeStart(now);
+    } else {
+      setFreezeStart(null);
+    }
+
+    if (freezeStart && now - freezeStart > 6000) {
+      stopCamera();
       setPhase1Done(true);
     }
-  }, [cameraReady, results, phase1Done]);
+  }, [
+    frameFrozen,
+    videoTimestampFrozen,
+    cameraBlocked,
+    cameraOff,
+    faceCount,
+    lighting,
+    freezeStart,
+    phase1Done,
+    stopCamera,
+  ]);
+
+  useEffect(() => {
+    if (!phase1Done && results === null) {
+      stopCamera();
+      setPhase1Done(true);
+    }
+  }, [results, phase1Done, stopCamera]);
+
+
 
   return (
     <div>
-      {/* Video + canvas */}
       <div
         style={{
           position: "relative",
@@ -100,13 +165,12 @@ export function CombinedViewer() {
             width: "100%",
             height: "100%",
             pointerEvents: "none",
-            transform: "scaleX(-1)", // ⭐ Fix ghost landmarks
+            transform: "scaleX(-1)",
             transformOrigin: "center",
           }}
         />
       </div>
 
-      {/* ⭐ UI logic updated so it never gets stuck */}
       {!phase1Done && !cameraReady && (
         <div>
           <h3>Camera starting…</h3>
