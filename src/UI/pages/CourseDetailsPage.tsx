@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import TeacherNavbar from '../components/TeacherNavbar'
 
 
 type Course = {
@@ -37,15 +38,7 @@ function CourseDetailsPage() {
 
     return (
         <div className="course-details-page">
-            <div className="course-top-bar">
-                <button onClick={() => navigate('/teacher')}>
-                    Dashborad
-                </button>
-
-                <button>
-                    Logout
-                </button>
-            </div>
+            <TeacherNavbar />
 
             <div className="detail-card">
                 <h3>Title</h3>
