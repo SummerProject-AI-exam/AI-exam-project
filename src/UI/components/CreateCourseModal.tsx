@@ -21,6 +21,29 @@ function CreateCourseModal({ onClose, onCreated }: Props) {
         )
         const teacherId = currentUser.id
 
+        const now = new Date()
+
+        const publishDateObj = new Date(scheduledPublishDate)
+        const endDateObj = new Date(courseEndDate)
+
+        //publish date cannot choose as past date
+        if (publishDateObj < now) {
+            alert('Publish date must be today or a future date')
+            return
+        }
+
+        // End date must be in the future
+        if (endDateObj <= now ) {
+            alert('Course end date must be a future date')
+            return
+        }
+
+        //End date must be after publish date
+        if (endDateObj <= publishDateObj) {
+            alert('Course end date must be after the publisg date')
+            return
+        }
+
         const { data, error } = await supabase
             .from('Course')
             .insert([

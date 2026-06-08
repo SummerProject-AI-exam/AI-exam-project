@@ -33,7 +33,7 @@ function CreateAssignmentModal({ courseId, onClose, onCreated }: Props) {
         }
 
         if (new Date(publishDate) > new Date(dueDate)) {
-            alert('Publish date cannot be after due date')
+            alert('Course end date must be after the publish date')
             return
         }
 
