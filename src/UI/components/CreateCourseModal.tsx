@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase'
 
 type Props = {
     onClose: () => void
+    onCreated: () => void
 }
 
-function CreateCourseModal({ onClose }: Props) {
+function CreateCourseModal({ onClose, onCreated }: Props) {
     const [courseName, setCourseName] = useState('')
     const [courseCode,  setCourseCode] = useState('')
     const [courseDescription, setCourseDescription] = useState('')
@@ -19,6 +20,29 @@ function CreateCourseModal({ onClose }: Props) {
             sessionStorage.getItem('currentUser') || '{}'
         )
         const teacherId = currentUser.id
+
+        const now = new Date()
+
+        const publishDateObj = new Date(scheduledPublishDate)
+        const endDateObj = new Date(courseEndDate)
+
+        //publish date cannot choose as past date
+        if (publishDateObj < now) {
+            alert('Publish date must be today or a future date')
+            return
+        }
+
+        // End date must be in the future
+        if (endDateObj <= now ) {
+            alert('Course end date must be a future date')
+            return
+        }
+
+        //End date must be after publish date
+        if (endDateObj <= publishDateObj) {
+            alert('Course end date must be after the publisg date')
+            return
+        }
 
         const { data, error } = await supabase
             .from('Course')
@@ -41,7 +65,8 @@ function CreateCourseModal({ onClose }: Props) {
 
             console.log(data)
             alert('Course created succefully')
-
+        
+        onCreated()
         onClose()
 
     }
