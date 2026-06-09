@@ -1,0 +1,10 @@
+export type ReadinessAlertType =
+  | "CAMERA_OFF"
+  | "CAMERA_BLOCKED"
+  | "CAMERA_PERMISSION_DENIED"
+  | "NO_FACE"
+  | "CALIBRATION_NOT_READY"
+  | "LOW_LIGHTING"
+  | "FRAME_FROZEN"
+  | "FRAME_QUALITY_LOW"
+  | "READY";
