@@ -1,0 +1,141 @@
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+
+type Props = {
+    questionData: any
+    onClose: () => void
+    onUpdated: () => void
+}
+
+function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
+    const [question, setQuestion] = useState(questionData.question)
+    const [answerA, setAnswerA] = useState(questionData.answer_a)
+    const [answerB, setAnswerB] = useState(questionData.answer_b)
+    const [answerC, setAnswerC] = useState(questionData.answer_c)
+    const [answerD, setAnswerD] = useState(questionData.answer_d)
+    const [answerE, setAnswerE] = useState(questionData.answer_e || '')
+    const [answerF, setAnswerF] = useState(questionData.answer_f || '')
+    const [correctAnswer, setCorrectAnswer] = useState(questionData.correct_answer)
+    const [score, setScore] = useState(String(questionData.score))
+
+    const handleUpdate = async () => {
+
+        const { error } = await supabase
+            .from('assignment_questions')
+            .update({
+                question,
+                answer_a: answerA,
+                answer_b: answerB,
+                answer_c: answerC,
+                answer_d: answerD,
+                answer_e: answerE,
+                answer_f: answerF,
+
+                correct_answer: correctAnswer,
+
+                score: Number(score)
+            })
+            .eq('id', questionData.id)
+
+        if (error) {
+            console.error(error)
+            alert('Failed to update question')
+            return
+        }   
+        
+        alert('Question updated sucessfully')
+
+        onUpdated()
+        onClose()
+    }
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+
+                <h2>Edit MCQ Question</h2>
+
+                <textarea
+                    placeholder="Question"
+                    value={question}
+                    onChange={(e) =>
+                        setQuestion(e.target.value)
+                    }
+                />
+
+                <input
+                    type="text"
+                    placeholder="Answer A"
+                    value={answerA}
+                    onChange={(e) => setAnswerA(e.target.value)}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Answer B"
+                    value={answerB}
+                    onChange={(e) => setAnswerB(e.target.value)}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Answer C"
+                    value={answerC}
+                    onChange={(e) => setAnswerC(e.target.value)}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Answer D"
+                    value={answerD}
+                    onChange={(e) => setAnswerD(e.target.value)}
+                />
+                <input
+                    type="text"
+                    placeholder="Answer E"
+                    value={answerE}
+                    onChange={(e) => setAnswerE(e.target.value)}
+                />
+                <input
+                    type="text"
+                    placeholder="Answer F"
+                    value={answerF}
+                    onChange={(e) => setAnswerF(e.target.value)}
+                />
+
+                <label>Correct Answer</label>
+
+                <select 
+                    value={correctAnswer}
+                    onChange={(e) => setCorrectAnswer(e.target.value)}
+                >
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                </select>
+
+                <input
+                    type="number"
+                    placeholder="Score"
+                    value={score}
+                    onChange={(e) => setScore(e.target.value)}
+                />
+
+                <div className="modal-buttons">
+                    <button onClick={handleUpdate}>
+                        Update Question
+                    </button>
+
+                    <button onClick={onClose}>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default EditQuestionModal

@@ -194,7 +194,8 @@ body {
 }
 
 .create-course-btn,
-.create-assignment-btn {
+.create-assignment-btn,
+.add-question-btn {
   background: #F98012;
   color: white;
   border: none;
@@ -207,7 +208,8 @@ body {
 }
 
 .create-course-btn:hover,
-.create-assignment-btn:hover {
+.create-assignment-btn:hover,
+.add-question-btn:hover {
   background: #E56F00;
   transform: translateY(-2px);
 }
