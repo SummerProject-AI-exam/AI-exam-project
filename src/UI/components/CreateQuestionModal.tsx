@@ -16,7 +16,9 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
     const [answerE, setAnswerE] = useState('')
     const [answerF, setAnswerF] = useState('')
 
-    const [correctAnswer, setCorrectAnswer] = useState('A')
+    //const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(false)
+
+    const [correctAnswers, setCorrectAnswers] = useState<string[]>([])
 
     const [score, setScore] = useState('1')
 
@@ -30,6 +32,11 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
             !answerD
         ) {
             alert('Please fill all fields')
+            return
+        }
+
+        if (correctAnswers.length === 0) {
+            alert('Please select at least one correct answer')
             return
         }
 
@@ -48,14 +55,16 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
                     answer_e: answerE,
                     answer_f: answerF,
 
-                    correct_answer: correctAnswer,
+                    correct_answers: correctAnswers.join(','),
+
+                    allow_multiple_answers: correctAnswers.length > 1,
 
                     score: Number(score)
                 }
             ])
 
             if (error) {
-                console.error('SUPABASE ERROR:', error)
+                console.error(error)
                 //alert('Failed to create question')
                 alert(error.message)
                 return
@@ -66,6 +75,20 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
             onCreated()
             onClose()
 
+    }
+
+    const toggleCorrectAnswer = (answer: string) => {
+
+        if (correctAnswers.includes(answer)) {
+            setCorrectAnswers(
+                correctAnswers.filter(a => a !== answer)
+            )
+        } else {
+            setCorrectAnswers([
+                ...correctAnswers,
+                answer
+            ])
+        }
     }
 
     
@@ -125,7 +148,7 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
                 />
 
                 <label>Correct Answer</label>
-
+                {/*
                 <select 
                     value={correctAnswer}
                     onChange={(e) => setCorrectAnswer(e.target.value)}
@@ -136,7 +159,30 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
                     <option value="D">D</option>
                     <option value="E">E</option>
                     <option value="F">F</option>
-                </select>
+                </select> 
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={allowMultipleAnswers}
+                        onChange={(e) => setAllowMultipleAnswers(e.target.checked)}
+                    />
+                    Multiple Correct Answers
+                </label>*/}
+
+                <div className="answer-selector">
+                    {['A', 'B', 'C', 'D', 'E', 'F'].map(answer => (
+                        <label key={answer} className="answer-option">
+                            <input
+                                type="checkbox"
+                                checked={
+                                    correctAnswers.includes(answer)
+                                }
+                                onChange={() => toggleCorrectAnswer(answer)}
+                            />
+                            {answer}
+                        </label>
+                    ))}
+                </div>
 
                 <input
                     type="number"

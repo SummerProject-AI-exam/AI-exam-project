@@ -15,10 +15,20 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
     const [answerD, setAnswerD] = useState(questionData.answer_d)
     const [answerE, setAnswerE] = useState(questionData.answer_e || '')
     const [answerF, setAnswerF] = useState(questionData.answer_f || '')
-    const [correctAnswer, setCorrectAnswer] = useState(questionData.correct_answer)
+    //const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(questionData.allow_multiple_answers)
+    const [correctAnswers, setCorrectAnswers] = useState<string[]>(
+        questionData.correct_answers 
+            ? questionData.correct_answers.split(',') 
+            : []
+    )
     const [score, setScore] = useState(String(questionData.score))
 
     const handleUpdate = async () => {
+
+        if (correctAnswers.length === 0) {
+            alert('Please select at least one correct answer')
+            return
+        }
 
         const { error } = await supabase
             .from('assignment_questions')
@@ -31,7 +41,8 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
                 answer_e: answerE,
                 answer_f: answerF,
 
-                correct_answer: correctAnswer,
+                correct_answers: correctAnswers.join(','),
+                allow_multiple_answers: correctAnswers.length > 1,
 
                 score: Number(score)
             })
@@ -47,6 +58,20 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
 
         onUpdated()
         onClose()
+    }
+
+    const toggleCorrectAnswer = (answer: string) => {
+
+        if (correctAnswers.includes(answer)) {
+            setCorrectAnswers(
+                correctAnswers.filter(a => a !== answer)
+            )
+        } else {
+            setCorrectAnswers([
+                ...correctAnswers,
+                answer
+            ])
+        }
     }
 
     return (
@@ -104,7 +129,7 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
                 />
 
                 <label>Correct Answer</label>
-
+                {/*
                 <select 
                     value={correctAnswer}
                     onChange={(e) => setCorrectAnswer(e.target.value)}
@@ -115,7 +140,31 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
                     <option value="D">D</option>
                     <option value="E">E</option>
                     <option value="F">F</option>
-                </select>
+                </select> 
+
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={allowMultipleAnswers}
+                        onChange={(e) => setAllowMultipleAnswers(e.target.checked)}
+                    />
+                    Multiple Correct Answers
+                </label> */}
+
+                <div className="answer-selector">
+                    {['A', 'B', 'C', 'D', 'E', 'F'].map(answer => (
+                        <label key={answer} className="answer-option">
+                            <input
+                                type="checkbox"
+                                checked={
+                                    correctAnswers.includes(answer)
+                                }
+                                onChange={() => toggleCorrectAnswer(answer)}
+                            />
+                            {answer}
+                        </label>
+                    ))}
+                </div>
 
                 <input
                     type="number"

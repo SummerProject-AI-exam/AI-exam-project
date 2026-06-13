@@ -82,6 +82,9 @@ body {
   gap: 15px;
 
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal input,
@@ -212,4 +215,17 @@ body {
 .add-question-btn:hover {
   background: #E56F00;
   transform: translateY(-2px);
+}
+
+.answer-selector {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.answer-option {
+  display: flex;
+  align-items:center;
+  gap: 5px;
 }

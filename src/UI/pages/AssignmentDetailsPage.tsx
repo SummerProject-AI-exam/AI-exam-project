@@ -158,13 +158,25 @@ function AssignmentDetailsPage() {
                     {question.answer_f && (
                         <p>F: {question.answer_f}</p>
                     )}
+
+                    <p>
+                        <strong>Type:</strong>
+                        {' '}
+                        {question.allow_multiple_answers
+                            ? 'Multiple Answers'
+                            : 'Single Answer'}
+                    </p>
                     
                       
 
                     <p>
-                        <strong>Correct Answer:</strong>
+                        <strong>
+                            {question.allow_multiple_answers
+                                ? 'Correct Answers:'
+                                : 'Correct Answer:'}
+                        </strong>
                         {" "}
-                        {question.correct_answer}
+                        {question.correct_answers?.split(',').join(', ')}
                     </p>
 
                     <p>
