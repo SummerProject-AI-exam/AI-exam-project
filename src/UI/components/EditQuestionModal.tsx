@@ -129,27 +129,6 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
                 />
 
                 <label>Correct Answer</label>
-                {/*
-                <select 
-                    value={correctAnswer}
-                    onChange={(e) => setCorrectAnswer(e.target.value)}
-                >
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                    <option value="E">E</option>
-                    <option value="F">F</option>
-                </select> 
-
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={allowMultipleAnswers}
-                        onChange={(e) => setAllowMultipleAnswers(e.target.checked)}
-                    />
-                    Multiple Correct Answers
-                </label> */}
 
                 <div className="answer-selector">
                     {['A', 'B', 'C', 'D', 'E', 'F'].map(answer => (

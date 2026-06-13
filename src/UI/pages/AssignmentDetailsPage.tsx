@@ -146,10 +146,22 @@ function AssignmentDetailsPage() {
                 >
                     <h3>Qustion {index + 1}: {question.question}</h3>
 
-                    <p>A: {question.answer_a}</p>
-                    <p>B: {question.answer_b}</p>
-                    <p>C: {question.answer_c}</p>
-                    <p>D: {question.answer_d}</p>
+                    {question.answer_a && (
+                        <p>A: {question.answer_a}</p>
+                    )}
+                    
+                    {question.answer_b && (
+                        <p>B: {question.answer_b}</p>
+                    )}
+                    
+                    {question.answer_c && (
+                        <p>C: {question.answer_c}</p>
+                    )}
+                    
+                    {question.answer_d && (
+                        <p>D: {question.answer_d}</p>
+                    )}
+                    
                     
                     {question.answer_e && (
                         <p>E: {question.answer_e}</p>
