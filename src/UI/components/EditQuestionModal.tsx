@@ -15,6 +15,14 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
     const [answerD, setAnswerD] = useState(questionData.answer_d)
     const [answerE, setAnswerE] = useState(questionData.answer_e || '')
     const [answerF, setAnswerF] = useState(questionData.answer_f || '')
+
+    const [showAnswerE, setShowAnswerE] = useState(
+        !!questionData.answer_e
+    )
+    
+    const [showAnswerF, setShowAnswerF] = useState(
+        !!questionData.answer_f
+    )
     //const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(questionData.allow_multiple_answers)
     const [correctAnswers, setCorrectAnswers] = useState<string[]>(
         questionData.correct_answers 
@@ -115,18 +123,42 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
                     value={answerD}
                     onChange={(e) => setAnswerD(e.target.value)}
                 />
-                <input
+
+                {!showAnswerE && (
+                    <button
+                        type="button"
+                        onClick={() => setShowAnswerE(true)}
+                    >
+                        Add Option
+                    </button>
+                )}
+
+                {showAnswerE && !showAnswerF && (
+                    <button
+                        type="button"
+                        onClick={() => setShowAnswerF(true)}
+                    >
+                        Add Option
+                    </button>
+                )}
+                
+                {showAnswerE && (
+                    <input
                     type="text"
                     placeholder="Answer E"
                     value={answerE}
                     onChange={(e) => setAnswerE(e.target.value)}
                 />
-                <input
+                )}
+                {showAnswerF && (
+                    <input
                     type="text"
                     placeholder="Answer F"
                     value={answerF}
                     onChange={(e) => setAnswerF(e.target.value)}
                 />
+                )}
+                
 
                 <label>Correct Answer</label>
 

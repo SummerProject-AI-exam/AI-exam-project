@@ -16,6 +16,9 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
     const [answerE, setAnswerE] = useState('')
     const [answerF, setAnswerF] = useState('')
 
+    const [showAnswerE, setShowAnswerE] = useState(false)
+    const [showAnswerF, setShowAnswerF] = useState(false)
+
     //const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(false)
 
     const [correctAnswers, setCorrectAnswers] = useState<string[]>([])
@@ -134,18 +137,41 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
                     value={answerD}
                     onChange={(e) => setAnswerD(e.target.value)}
                 />
-                <input
+                {!showAnswerE && (
+                    <button
+                        type="button"
+                        onClick={() => setShowAnswerE(true)}
+                    >
+                        Add Option
+                    </button>
+                )}
+
+                {showAnswerE && !showAnswerF && (
+                    <button
+                        type="button"
+                        onClick={() => setShowAnswerF(true)}
+                    >
+                        Add Option
+                    </button>
+                )}
+                {showAnswerE && (
+                    <input
                     type="text"
                     placeholder="Answer E"
                     value={answerE}
                     onChange={(e) => setAnswerE(e.target.value)}
                 />
-                <input
+                )}
+                
+                {showAnswerF && (
+                    <input
                     type="text"
                     placeholder="Answer F"
                     value={answerF}
                     onChange={(e) => setAnswerF(e.target.value)}
                 />
+                )}
+                
 
                 <label>Correct Answer</label>
 
