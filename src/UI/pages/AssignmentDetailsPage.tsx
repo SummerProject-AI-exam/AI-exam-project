@@ -81,22 +81,20 @@ function AssignmentDetailsPage() {
     }
 
     return (
-        <div>
+        <div className="assignment-details-page">
             <TeacherNavbar />
+            <div className="assignment-header-card">
+                <h1>{assignment?.title}</h1>
 
-            <h1>{assignment?.title}</h1>
+                <div className="assignment-stats">
 
-            <p>
-                Assignment Total:
-                {" "}
-                {assignment?.total_marks}
-            </p>
+                    <span>Assignment Total: {assignment?.total_marks}</span>
+                    <span>Question Total: {questionTotal}</span>
+                </div>
+            </div>
+             
 
-            <p>
-                Question Total:
-                {" "}
-                {questionTotal}
-            </p>
+            
 
             {assignment && (
                 questionTotal === assignment.total_marks
@@ -144,40 +142,66 @@ function AssignmentDetailsPage() {
                     key={question.id}
                     className="question-card"
                 >
-                    <h3>Qustion {index + 1}: {question.question}</h3>
+                    <div className="question-header">
+                        <h3>Qustion {index + 1}</h3>
 
-                    {question.answer_a && (
-                        <p>A: {question.answer_a}</p>
-                    )}
+                        <p className="question-text">
+                            {question.question}
+                        </p>
+                    </div>
+                    <div className="answer-list">
+                        {question.answer_a && (
+                            <p>A: {question.answer_a}</p>
+                        )}
                     
-                    {question.answer_b && (
-                        <p>B: {question.answer_b}</p>
-                    )}
+                        {question.answer_b && (
+                            <p>B: {question.answer_b}</p>
+                        )}
                     
-                    {question.answer_c && (
-                        <p>C: {question.answer_c}</p>
-                    )}
+                        {question.answer_c && (
+                            <p>C: {question.answer_c}</p>
+                        )}
                     
-                    {question.answer_d && (
-                        <p>D: {question.answer_d}</p>
-                    )}
+                        {question.answer_d && (
+                            <p>D: {question.answer_d}</p>
+                        )}
                     
                     
-                    {question.answer_e && (
-                        <p>E: {question.answer_e}</p>
-                    )}
+                        {question.answer_e && (
+                            <p>E: {question.answer_e}</p>
+                        )}
 
-                    {question.answer_f && (
-                        <p>F: {question.answer_f}</p>
-                    )}
+                        {question.answer_f && (
+                            <p>F: {question.answer_f}</p>
+                        )}
 
-                    <p>
+                    </div>
+                    <div className="question-meta">
+                        <span className="meta-badge">
+                            {question.allow_multiple_answers
+                                ? 'Multiple Answers'
+                                : 'Single Answer'}
+                        </span>
+
+                        <span className="meta-badge">
+                            {question.score} Marks
+                        </span>
+
+                        <span className="meta-badge correct-answer">
+                            {question.allow_multiple_answers
+                                ? 'Correct Answers: '
+                                : 'Correct Answer: '}
+                            {question.correct_answers?.split(',').join(', ')}
+                        </span>
+                    </div>
+
+                        {/*
                         <strong>Type:</strong>
                         {' '}
                         {question.allow_multiple_answers
                             ? 'Multiple Answers'
                             : 'Single Answer'}
-                    </p>
+                    
                     
                       
 
@@ -195,19 +219,24 @@ function AssignmentDetailsPage() {
                         <strong>Marks:</strong>
                         {" "}
                         {question.score}
-                    </p>
+                    </p> */}
 
-                    <button
-                        onClick={() => handleEdit(question)}
-                    >
-                        Edit
-                    </button>
+                    <div className="question-actions">
 
-                    <button
-                        onClick={() => handleDelete(question.id)}
-                    >
-                        Delete
-                    </button>
+                        <button
+                            className="edit-btn"
+                            onClick={() => handleEdit(question)}
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            className="delete-btn"
+                            onClick={() => handleDelete(question.id)}
+                        >
+                            Delete
+                        </button>
+                    </div>
                 </div>      
             ))}    
         </div>
