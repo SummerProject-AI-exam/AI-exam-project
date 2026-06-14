@@ -7,16 +7,20 @@ export async function logFraudEvent({
   sessionId: string;
   eventType: string;
 }) {
+  const now = new Date().toISOString();
 
-  console.log("SUPABASE CLIENT:", supabase);
-
-  console.log("LOGGING TO SUPABASE:", sessionId, eventType);
-
-  const { error } = await supabase.from("Fraud_Events").insert({
+  const payload = {
     session_id: sessionId,
     event_type: eventType,
-    timestamp: new Date().toISOString()
-  });
+    timestamp: now,
+    created_at: now
+  };
+
+  console.log("FINAL PAYLOAD SENT TO SUPABASE:", payload);
+
+  const { error } = await supabase
+    .from("Fraud_Events")
+    .insert(payload);
 
   console.log("SUPABASE INSERT RESULT:", error);
 

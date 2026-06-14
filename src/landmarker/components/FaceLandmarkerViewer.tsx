@@ -7,7 +7,7 @@ import { useCameraBlocked } from "../analysis/useCameraBlocked";
 import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
 import { useAlerts } from "../alerts/useAlerts";
-
+import { usePose } from "../hooks/usePose";
 
 export default function FaceLandmarkerViewer() {
   const params = new URLSearchParams(window.location.search);
@@ -19,17 +19,22 @@ export default function FaceLandmarkerViewer() {
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
+  
+  const pose = usePose(results?.faceLandmarks?.[0]);
 
   const alert = useAlerts(
     {
       faceCount,
       cameraReady,
       cameraBlocked,
-      cameraOff
+      cameraOff,
+      poseTooLeft: pose?.tooLeft ?? false,
+      poseTooRight: pose?.tooRight ?? false,
+      poseTooDown: pose?.tooDown ?? false,
+      poseTooUp: pose?.tooUp ?? false
     },
     sessionId
   );
-
 
   const { fps, updateFPS } = useFPS();
 

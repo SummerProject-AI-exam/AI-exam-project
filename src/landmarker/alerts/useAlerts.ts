@@ -9,6 +9,10 @@ interface AlertInput {
   cameraReady: boolean;
   cameraBlocked: boolean;
   cameraOff: boolean;
+  poseTooLeft: boolean;
+  poseTooRight: boolean;
+  poseTooDown: boolean;
+  poseTooUp: boolean;
 }
 
 export function useAlerts(input: AlertInput, sessionId: string): AlertState | null {
@@ -52,7 +56,8 @@ export function useAlerts(input: AlertInput, sessionId: string): AlertState | nu
 
       prevAlertTypeRef.current = eventType;
     }
-  }, [stableAlert, input.cameraReady]);
+ }, [stableAlert?.type, input.cameraReady]);
+
 
   return stableAlert;
 }
