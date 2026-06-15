@@ -8,6 +8,7 @@ import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
 import { useAlerts } from "../alerts/useAlerts";
 import { usePose } from "../hooks/usePose";
+import { useAlertLogger } from "../alerts/useAlertLogger";
 
 export default function FaceLandmarkerViewer() {
   const params = new URLSearchParams(window.location.search);
@@ -15,12 +16,18 @@ export default function FaceLandmarkerViewer() {
 
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results, cameraReady } = useFaceLandmarker(videoRef);
+
   const faceCount = results?.faceLandmarks?.length ?? 0;
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
-  
-  const pose = usePose(results?.faceLandmarks?.[0]);
+
+  const faceLandmarks = results?.faceLandmarks ?? [];
+
+  const poseLandmarks =
+    cameraReady && faceCount >= 1 ? faceLandmarks[0] : null;
+
+  const pose = usePose(poseLandmarks);
 
   const alert = useAlerts(
     {
@@ -31,11 +38,11 @@ export default function FaceLandmarkerViewer() {
       poseTooLeft: pose?.tooLeft ?? false,
       poseTooRight: pose?.tooRight ?? false,
       poseTooDown: pose?.tooDown ?? false,
-      poseTooUp: pose?.tooUp ?? false
+      poseTooUp: pose?.tooUp ?? false,
     },
-    sessionId
   );
-
+  useAlertLogger(alert, sessionId);
+  
   const { fps, updateFPS } = useFPS();
 
   useEffect(() => {
@@ -109,6 +116,7 @@ export default function FaceLandmarkerViewer() {
           transform: "scaleX(-1)",
         }}
       />
+
       <AlertPanel alert={alert} />
     </div>
   );

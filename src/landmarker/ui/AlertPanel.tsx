@@ -1,5 +1,4 @@
-import React from "react";
-import type { AlertState, AlertType } from "../alerts/alertTypes";
+import type { AlertState } from "../alerts/alertTypes";
 
 interface Props {
   alert: AlertState | null;
@@ -14,6 +13,10 @@ export function AlertPanel({ alert }: Props) {
     CAMERA_OFF: "Camera is off",
     CAMERA_BLOCKED: "Camera is blocked",
     CAMERA_NOT_READY: "Camera is not ready",
+    POSE_TOO_LEFT: "Head turned left",
+    POSE_TOO_RIGHT: "Head turned right",
+    POSE_TOO_DOWN: "Head tilted down",
+    POSE_TOO_UP: "Head tilted up",
   }[alert.type];
 
   const color = {
@@ -22,6 +25,10 @@ export function AlertPanel({ alert }: Props) {
     CAMERA_OFF: "#f44336",
     CAMERA_BLOCKED: "#9c27b0",
     CAMERA_NOT_READY: "#607d8b",
+    POSE_TOO_LEFT: "#3f51b5",
+    POSE_TOO_RIGHT: "#3f51b5",
+    POSE_TOO_DOWN: "#3f51b5",
+    POSE_TOO_UP: "#3f51b5",
   }[alert.type];
 
   return (

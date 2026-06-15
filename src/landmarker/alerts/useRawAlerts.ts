@@ -42,5 +42,15 @@ export function useRawAlerts({
     return null;
 
 
-  }, [faceCount, cameraReady, cameraBlocked, cameraOff]);
+  }, [
+  faceCount,
+  cameraReady,
+  cameraBlocked,
+  cameraOff,
+  poseTooLeft,
+  poseTooRight,
+  poseTooDown,
+  poseTooUp
+]);
+
 }
