@@ -37,6 +37,7 @@ function AssignmentDetailsPage() {
             .from('assignment_questions')
             .select('*')
             .eq('assignment_id', id)
+            .order('created_at', { ascending: true})
 
         setQuestions(data || [])  
         
