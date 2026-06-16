@@ -198,7 +198,8 @@ body {
 
 .create-course-btn,
 .create-assignment-btn,
-.add-question-btn {
+.add-question-btn ,
+.create-exam-btn {
   background: #F98012;
   color: white;
   border: none;
@@ -212,7 +213,8 @@ body {
 
 .create-course-btn:hover,
 .create-assignment-btn:hover,
-.add-question-btn:hover {
+.add-question-btn:hover,
+.create-exam-btn:hover {
   background: #E56F00;
   transform: translateY(-2px);
 }
@@ -318,3 +320,82 @@ body {
   border-radius: 8px;
   cursor: pointer;
 }
+/*=============================
+  Exam Page Styles
+  ============================= */
+
+  .exam-list {
+    max-width: 1000px;
+    margin: 30px auto;
+  }
+
+  .exam-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .exam-card h3 {
+    margin-bottom: 10px;
+    color: #1f2a44;
+  }
+
+  .exam-card p {
+    margin-bottom: 16px;
+    color: #555;
+  }
+
+  .exam-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .meta-badge {
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  .unlocked {
+    background: #dcfce7;
+    color: #166534
+  }
+
+  .locked {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .exam-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .manage-btn,
+  .edit-btn,
+  .delete-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .manage-btn {
+    background: #6b7280;
+    color: white
+  }
+
+  .edit-btn {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .delete-btn {
+    background: #ef4444;
+    color: white;
+  }

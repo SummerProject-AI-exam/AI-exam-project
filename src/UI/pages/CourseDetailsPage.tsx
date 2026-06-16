@@ -127,7 +127,10 @@ function CourseDetailsPage() {
             </div>
 
             {/* Future Exam management section */}
-            <div className="detail-card">
+            <div 
+                className="detail-card"
+                onClick={() => navigate(`/teacher/course/${id}/exams`)}
+            >
                 <h3>Exams</h3>
             </div>
 
