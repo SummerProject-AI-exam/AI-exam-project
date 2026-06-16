@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import CreateAssignmentModal from "../components/CreateAssignmentModal"
 import { supabase } from "../lib/supabase"
 import TeacherNavbar from "../components/TeacherNavbar";
@@ -17,7 +18,7 @@ type Assignment = {
 
 function AssignmentPage() {
 
-    //const navigate = useNavigate()
+    const navigate = useNavigate()
     const { id } = useParams()
 
     //console.log('Assignment course id:', id)
@@ -92,6 +93,9 @@ function AssignmentPage() {
                     <div
                         key={assignment.id}
                         className="assignment-card"
+                        onClick={() =>
+                            navigate(`/teacher/assignment/${assignment.id}`)
+                        }
                     >
                         <h3>{assignment.title}</h3>
 
@@ -110,6 +114,11 @@ function AssignmentPage() {
                             <span>
                                 Due:{""}
                                 {new Date(assignment.due_date).toLocaleDateString("en-GB")}
+                            </span>
+
+                            <span>
+                                Total Score:{""}
+                                {assignment.total_marks}
                             </span>
                         </div>
                     </div>    

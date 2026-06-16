@@ -9,6 +9,7 @@ import TeacherDashboard from './UI/pages/TeacherDashboard';
 import StudentDashboard from './UI/pages/StudentDashboard';
 import CourseDetailsPage from './UI/pages/CourseDetailsPage';
 import AssignmentPage from './UI/pages/AssignmentPage';
+import AssignmentDetailsPage from './UI/pages/AssignmentDetailsPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
@@ -67,6 +68,7 @@ function App() {
         <Route path="/teacher" element={<TeacherDashboard />} />
         <Route path="/teacher/course/:id" element={<CourseDetailsPage />} />
         <Route path="/teacher/course/:id/assignments" element={<AssignmentPage />} />
+        <Route path="/teacher/assignment/:id" element={<AssignmentDetailsPage />} />
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
