@@ -37,9 +37,6 @@ export function usePose(landmarks: any) {
       return;
     }
 
-    // -----------------------------
-    // 200ms POSE STABILIZATION
-    // -----------------------------
     const now = performance.now();
 
     function updateStableFlag(flag: "tooLeft" | "tooRight" | "tooUp" | "tooDown", active: boolean) {
@@ -53,7 +50,7 @@ export function usePose(landmarks: any) {
           }, 200);
         }
       } else if (!active && stablePoseRef.current[flag]) {
-        // start exit timer
+
         if (!poseTimers.current[timerKey]) {
           poseTimers.current[timerKey] = window.setTimeout(() => {
             stablePoseRef.current[flag] = false;
@@ -73,18 +70,14 @@ export function usePose(landmarks: any) {
     updateStableFlag("tooUp", raw.tooUp);
     updateStableFlag("tooDown", raw.tooDown);
 
-    // -----------------------------
-    // CLASSIFY DIRECTION (using stable pose)
-    // -----------------------------
+  
     let direction: string | null = null;
     if (stablePoseRef.current.tooLeft) direction = "left";
     else if (stablePoseRef.current.tooRight) direction = "right";
     else if (stablePoseRef.current.tooUp) direction = "up";
     else if (stablePoseRef.current.tooDown) direction = "down";
 
-    // -----------------------------
-    // 3000ms HOLD FOR FINAL DIRECTION
-    // -----------------------------
+
     if (direction !== lastDirectionRef.current) {
       lastDirectionRef.current = direction;
       directionStartRef.current = direction ? now : null;
