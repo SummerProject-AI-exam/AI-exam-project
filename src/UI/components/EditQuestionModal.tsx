@@ -3,11 +3,12 @@ import { supabase } from '../lib/supabase'
 
 type Props = {
     questionData: any
+    tableName: string
     onClose: () => void
     onUpdated: () => void
 }
 
-function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
+function EditQuestionModal ({ questionData, tableName, onClose, onUpdated}: Props) {
     const [question, setQuestion] = useState(questionData.question)
     const [answerA, setAnswerA] = useState(questionData.answer_a)
     const [answerB, setAnswerB] = useState(questionData.answer_b)
@@ -39,7 +40,8 @@ function EditQuestionModal ({ questionData, onClose, onUpdated}: Props) {
         }
 
         const { error } = await supabase
-            .from('assignment_questions')
+            //.from('assignment_questions')
+            .from(tableName)
             .update({
                 question,
                 answer_a: answerA,

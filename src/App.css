@@ -1,9 +1,16 @@
+/* =============================
+  GLOBAL STYLES
+  ============================== */
+
 body {
   margin: 0;
   padding: 0;
   background: #f1f5f9;
   font-family: Arial, Arial, Helvetica, sans-serif;
 }
+/* =============================
+  TEACHER NAVBAR
+  ============================== */
 
 .teacher-navbar {
   width: 100%;
@@ -55,6 +62,10 @@ body {
 .dashborad-container {
   padding: 40px;
 }
+
+/* =============================
+  MODALS
+  ============================== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -117,6 +128,9 @@ body {
   margin-top: 10px;
 }
 
+/* =============================
+  COURSE PAGES
+  ============================== */
 .course-list {
   display: flex;
   flex-direction: column;
@@ -152,6 +166,10 @@ body {
   border-radius: 12px;
 }
 
+/* =============================
+  ASSIGNMENT PAGES
+  ============================== */
+
 .assignment-top-bar {
   display: flex;
   justify-content: space-between;
@@ -169,7 +187,7 @@ body {
 .assignment-card {
   background: white;
   padding: 24px;
-  border-radius: left;
+  border-radius: 12px;
   text-align:left;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   transition: 0.2s ease;
@@ -252,6 +270,10 @@ body {
   margin-top: 10px;
 }
 
+/* =============================
+  QUESTION COMPONENTS
+  ============================== */
+
 .question-card {
   background: white;
   border-radius: 12px;
@@ -288,7 +310,7 @@ body {
   color: #3730a3;
   padding: 6px 12px;
   border-radius: 999px;
-  font-size: 14x;
+  font-size: 14px;
 
 }
 
@@ -302,6 +324,10 @@ body {
   display: flex;
   gap: 10px;
 }
+
+/* =============================
+  BUTTONS
+  ============================== */
 
 .edit-btn {
   background: #2563eb;
@@ -321,7 +347,7 @@ body {
   cursor: pointer;
 }
 /*=============================
-  Exam Page Styles
+  EXAM PAGES
   ============================= */
 
   .exam-list {
@@ -352,13 +378,6 @@ body {
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 18px;
-  }
-
-  .meta-badge {
-    background: #f3f4f6;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
   }
 
   .unlocked {

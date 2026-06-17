@@ -124,7 +124,9 @@ function AssignmentDetailsPage() {
 
             {showModal && (
                 <CreateQuestionModal
-                    assignmentId={id!}
+                    parentId={id!}
+                    tableName="assignment_questions"
+                    foreignKey="assignment_id"
                     onClose={() => setShowModal(false)}
                     onCreated={fetchQuestions}
                 />
@@ -133,6 +135,7 @@ function AssignmentDetailsPage() {
             {showEditModal && selectedQuestion && (
                 <EditQuestionModal
                     questionData={selectedQuestion}
+                    tableName="assignment_questions"
                     onClose={() => setShowEditModal(false)}
                     onUpdated={fetchQuestions}
                 />

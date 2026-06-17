@@ -2,8 +2,8 @@ import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import TeacherNavbar from '../components/TeacherNavbar'
-//import CreateQuestionModal from '../components/CreateQuestionModal'
-//import EditQuestionModal from '../components/EditQuestionModal'
+import CreateQuestionModal from '../components/CreateQuestionModal'
+import EditQuestionModal from '../components/EditQuestionModal'
 
 function ExamDetailsPage() {
 
@@ -13,11 +13,11 @@ function ExamDetailsPage() {
 
     const [questions, setQuestions] = useState<any[]>([])
 
-    //const [showModal, setShowModal] = useState(false)
+    const [showModal, setShowModal] = useState(false)
 
-    //const [showEditModal, setShowEditModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
 
-    //const [selectedQuestion, setSelectedQuestion] = useState<any>(null)
+    const [selectedQuestion, setSelectedQuestion] = useState<any>(null)
 
     const [questionTotal, setQuestionTotal] = useState(0)
 
@@ -63,7 +63,7 @@ function ExamDetailsPage() {
         fetchQuestions()
     }, [id])
 
-    /*const handleDelete = async (questionId: string) => {
+    const handleDelete = async (questionId: string) => {
         const confirmed = window.confirm(
             'Are you sure you want to delete this question?'
         )
@@ -71,7 +71,7 @@ function ExamDetailsPage() {
         if (!confirmed) return
 
         const { error } = await supabase
-            .from('assignment_questions')
+            .from('Multiple_Choice_Questions')
             .delete()
             .eq('id', questionId)
 
@@ -84,18 +84,20 @@ function ExamDetailsPage() {
         alert('Question deleted successfully')
 
         fetchQuestions()
-    }
+    } 
 
     const handleEdit = (question: any) => {
         setSelectedQuestion(question)
         setShowEditModal(true)
-    } */
+    } 
 
     return (
         <div className="assignment-details-page">
             <TeacherNavbar />
             <div className="assignment-header-card">
                 <h1>{exam?.title}</h1>
+
+                <p>{exam?.description}</p>
 
                 <div className="assignment-stats">
 
@@ -117,17 +119,47 @@ function ExamDetailsPage() {
                         {' '}
                         {questionTotal}
                     </span>
+
+                    <span>
+                        Status:
+                        {' '}
+                        {exam?.is_locked ? 'Locked' : 'Unlocked'}
+                    </span>
                 </div>
             </div>
              
+            <button
+                className="add-question-btn"
+                onClick={() => setShowModal(true)}
+            >
+                Add Question
+            </button>
 
+            {showModal && (
+                <CreateQuestionModal
+                    parentId={id!}
+                    tableName="Multiple_Choice_Questions"
+                    foreignKey="exam_id"
+                    onClose={() => setShowModal(false)}
+                    onCreated={fetchQuestions}
+                />           
+            )}
+
+            {showEditModal && selectedQuestion && (
+                <EditQuestionModal
+                    questionData={selectedQuestion}
+                    tableName="Multiple_Choice_Questions"
+                    onClose={() => setShowEditModal(false)}
+                    onUpdated={fetchQuestions}
+                />
+            )}
             {questions.map((question, index) => (
                 <div
                     key={question.id}
                     className="question-card"
                 >
                     <div className="question-header">
-                        <h3>Qustion {index + 1}</h3>
+                        <h3>Question {index + 1}</h3>
 
                         <p className="question-text">
                             {question.question}
@@ -167,12 +199,27 @@ function ExamDetailsPage() {
                             {question.score}
                         </span>
 
-                        <span className="meta-badge">
+                        <span className="meta-badge correct-answer">
                             Correct:
                             {' '}
-                            {question.correct_answer}
+                            {question.correct_answers?.split(',').join(', ')}
                         </span>
 
+                    </div>
+                    <div className="question-actions"> 
+                        <button
+                            className="edit-btn"
+                            onClick={() => handleEdit(question)}
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            className="delete-btn"
+                            onClick={() => handleDelete(question.id)}
+                        >
+                            Delete
+                        </button>
                     </div>
 
                     
