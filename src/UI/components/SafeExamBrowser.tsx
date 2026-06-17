@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function App() {
+function ExamPortal() {
     const userInsideSEB = navigator.userAgent.includes('SEB');
 
     const [examSubmitted, setExamSubmitted] = useState(false);
@@ -117,4 +117,4 @@ function App() {
     );
 }
 
-export default App;
+export default ExamPortal;
