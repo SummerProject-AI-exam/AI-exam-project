@@ -251,7 +251,7 @@ export function CombinedViewer() {
 
           {readiness.ok ? (
             <button
-              onClick={() => window.location.href = "/monitor?ready=true"}
+              onClick={() => window.location.href = `/monitor?sessionId=${sessionId}&ready=true`}
               style={{
                 padding: "10px 16px",
                 background: "#0078ff",
