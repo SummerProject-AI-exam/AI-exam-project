@@ -195,6 +195,8 @@ function CreateQuestionModal({ parentId, tableName, foreignKey, onClose, onCreat
                     ))}
                 </div>
 
+                <label>Marks</label>
+
                 <input
                     type="number"
                     placeholder="Score"
