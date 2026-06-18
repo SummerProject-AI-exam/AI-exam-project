@@ -42,6 +42,7 @@ export default function FaceLandmarkerViewer() {
     if (results) updateFPS();
   }, [results]);
 
+
   return (
     <div
       style={{

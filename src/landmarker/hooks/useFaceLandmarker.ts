@@ -16,6 +16,40 @@ export function useFaceLandmarker(
   const [results, setResults] = useState<any>(null);
   const [cameraReady, setCameraReady] = useState(false);
 
+ let lastGoodFrame: any = null;
+
+  function cheatingSafeFilter(detection: any, timestamp: number) {
+  if (!detection || !detection.faceLandmarks || detection.faceLandmarks.length === 0) {
+    return null; // no face → viewer already handles this
+  }
+
+  const landmarks = detection.faceLandmarks[0];
+  const bbox = detection.faceBlendshapes?.[0]?.boundingBox;
+
+  // ⭐ RULE 1: Face not readable (too many zero points)
+  const zeroPoints = landmarks.filter((pt: any) => pt.x === 0 && pt.y === 0).length;
+  if (zeroPoints > 10) {
+    // reject this frame, keep last good one
+    return lastGoodFrame;
+  }
+
+  if (bbox) {
+    if (
+      bbox.xMin < 0.02 ||
+      bbox.yMin < 0.02 ||
+      bbox.xMax > 0.98 ||
+      bbox.yMax > 0.98
+    ) {
+      return lastGoodFrame;
+    }
+  }
+
+  // ⭐ SAFE FRAME
+  lastGoodFrame = detection;
+  return detection;
+}
+
+
   useEffect(() => {
     if (!videoRef || !videoRef.current) return;
 
@@ -23,8 +57,8 @@ export function useFaceLandmarker(
     let animationFrameId: number;
     let stopTimeout: number | undefined;
 
-    const fps = options?.fps ?? 60; // Phase 2 keeps full speed by default
-    const maxDurationMs = options?.maxDurationMs; // Phase 2: undefined → no auto-stop
+    const fps = options?.fps ?? 60;
+    const maxDurationMs = options?.maxDurationMs;
     const frameInterval = 1000 / fps;
     let lastTime = 0;
 
@@ -66,7 +100,9 @@ export function useFaceLandmarker(
         canvas.height = video.videoHeight;
 
         const detection = landmarker.detectForVideo(video, now);
-        setResults(detection);
+        const safeFrame = cheatingSafeFilter(detection, now);
+        
+        setResults(safeFrame ?? detection);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (detection.faceLandmarks?.length > 0) {

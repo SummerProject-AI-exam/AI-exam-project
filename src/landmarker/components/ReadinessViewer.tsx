@@ -80,6 +80,8 @@ export function CombinedViewer() {
   const readinessImproving = readiness.ok || readySince !== null;
 
   const [freezeStart, setFreezeStart] = useState<number | null>(null);
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("sessionId") ?? "";
 
   useEffect(() => {
     startCamera();
