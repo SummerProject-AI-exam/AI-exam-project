@@ -5,11 +5,11 @@ import TeacherNavbar from '../components/TeacherNavbar'
 import CreateQuestionModal from '../components/CreateQuestionModal'
 import EditQuestionModal from '../components/EditQuestionModal'
 
-function AssignmentDetailsPage() {
+function ExamDetailsPage() {
 
     const { id } = useParams()
 
-    const [assignment, setAssignment] = useState<any>(null)
+    const [exam, setExam] = useState<any>(null)
 
     const [questions, setQuestions] = useState<any[]>([])
 
@@ -21,23 +21,33 @@ function AssignmentDetailsPage() {
 
     const [questionTotal, setQuestionTotal] = useState(0)
 
-    const fetchAssignment = async () => {
-        const { data } = await supabase
-            .from('Assignment')
+    const fetchExam = async () => {
+        const { data, error } = await supabase
+            .from('Exam')
             .select('*')
             .eq('id', id)
             .single()
 
-        setAssignment(data)    
+        if (error) {
+            console.error(error)
+            return
+        }
+
+        setExam(data)    
     }
 
     const fetchQuestions = async () => {
         
-        const { data } = await supabase
-            .from('assignment_questions')
+        const { data, error  } = await supabase
+            .from('Multiple_Choice_Questions')
             .select('*')
-            .eq('assignment_id', id)
+            .eq('exam_id', id)
             .order('created_at', { ascending: true})
+
+        if (error) {
+            console.error(error)
+            return
+        }
 
         setQuestions(data || [])  
         
@@ -49,7 +59,7 @@ function AssignmentDetailsPage() {
     }
 
     useEffect(() => {
-        fetchAssignment()
+        fetchExam()
         fetchQuestions()
     }, [id])
 
@@ -61,7 +71,7 @@ function AssignmentDetailsPage() {
         if (!confirmed) return
 
         const { error } = await supabase
-            .from('assignment_questions')
+            .from('Multiple_Choice_Questions')
             .delete()
             .eq('id', questionId)
 
@@ -74,47 +84,50 @@ function AssignmentDetailsPage() {
         alert('Question deleted successfully')
 
         fetchQuestions()
-    }
+    } 
 
     const handleEdit = (question: any) => {
         setSelectedQuestion(question)
         setShowEditModal(true)
-    }
+    } 
 
     return (
         <div className="assignment-details-page">
             <TeacherNavbar />
             <div className="assignment-header-card">
-                <h1>{assignment?.title}</h1>
+                <h1>{exam?.title}</h1>
+
+                <p>{exam?.description}</p>
 
                 <div className="assignment-stats">
 
-                    <span>Assignment Total: {assignment?.total_marks}</span>
-                    <span>Question Total: {questionTotal}</span>
+                    <span>
+                        Duration:
+                        {' '}
+                        {exam?.duration_time}
+                        {' '}
+                        mins
+                    </span>
+                    <span>
+                        Questions: 
+                        {' '}
+                        {questions.length}
+                    </span>
+
+                    <span>
+                        Total Marks:
+                        {' '}
+                        {questionTotal}
+                    </span>
+
+                    <span>
+                        Status:
+                        {' '}
+                        {exam?.is_locked ? 'Locked' : 'Unlocked'}
+                    </span>
                 </div>
             </div>
              
-
-            
-
-            {assignment && (
-                questionTotal === assignment.total_marks
-                    ? (
-                        <p style={{ color: 'green' }}>
-                            Marks tally correctly
-                        </p>
-                    )
-                    : (
-                        <p style={{ color: 'red '}}>
-                            Mraks mismatch:
-                            {" "}
-                            {assignment.total_marks - questionTotal}
-                            {" "}
-                            marks remaining
-                        </p>
-                    )
-            )}
-
             <button
                 className="add-question-btn"
                 onClick={() => setShowModal(true)}
@@ -125,29 +138,28 @@ function AssignmentDetailsPage() {
             {showModal && (
                 <CreateQuestionModal
                     parentId={id!}
-                    tableName="assignment_questions"
-                    foreignKey="assignment_id"
+                    tableName="Multiple_Choice_Questions"
+                    foreignKey="exam_id"
                     onClose={() => setShowModal(false)}
                     onCreated={fetchQuestions}
-                />
+                />           
             )}
 
             {showEditModal && selectedQuestion && (
                 <EditQuestionModal
                     questionData={selectedQuestion}
-                    tableName="assignment_questions"
+                    tableName="Multiple_Choice_Questions"
                     onClose={() => setShowEditModal(false)}
                     onUpdated={fetchQuestions}
                 />
             )}
-
             {questions.map((question, index) => (
                 <div
                     key={question.id}
                     className="question-card"
                 >
                     <div className="question-header">
-                        <h3>Qustion {index + 1}</h3>
+                        <h3>Question {index + 1}</h3>
 
                         <p className="question-text">
                             {question.question}
@@ -182,51 +194,19 @@ function AssignmentDetailsPage() {
                     </div>
                     <div className="question-meta">
                         <span className="meta-badge">
-                            {question.allow_multiple_answers
-                                ? 'Multiple Answers'
-                                : 'Single Answer'}
-                        </span>
-
-                        <span className="meta-badge">
-                            {question.score} Marks
+                            Marks:
+                            {' '}
+                            {question.score}
                         </span>
 
                         <span className="meta-badge correct-answer">
-                            {question.allow_multiple_answers
-                                ? 'Correct Answers: '
-                                : 'Correct Answer: '}
+                            Correct:
+                            {' '}
                             {question.correct_answers?.split(',').join(', ')}
                         </span>
+
                     </div>
-
-                        {/*
-                        <strong>Type:</strong>
-                        {' '}
-                        {question.allow_multiple_answers
-                            ? 'Multiple Answers'
-                            : 'Single Answer'}
-                    
-                    
-                      
-
-                    <p>
-                        <strong>
-                            {question.allow_multiple_answers
-                                ? 'Correct Answers:'
-                                : 'Correct Answer:'}
-                        </strong>
-                        {" "}
-                        {question.correct_answers?.split(',').join(', ')}
-                    </p>
-
-                    <p>
-                        <strong>Marks:</strong>
-                        {" "}
-                        {question.score}
-                    </p> */}
-
-                    <div className="question-actions">
-
+                    <div className="question-actions"> 
                         <button
                             className="edit-btn"
                             onClick={() => handleEdit(question)}
@@ -241,10 +221,12 @@ function AssignmentDetailsPage() {
                             Delete
                         </button>
                     </div>
+
+                    
                 </div>      
             ))}    
         </div>
     )
 }
 
-export default AssignmentDetailsPage
+export default ExamDetailsPage
