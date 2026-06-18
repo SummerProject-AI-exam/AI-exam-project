@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 type Props = {
-    assignmentId: string
+    //assignmentId: string
+    parentId: string
+    tableName: string
+    foreignKey: string
     onClose: () => void
     onCreated: () => void
 }
 
-function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
+function CreateQuestionModal({ parentId, tableName, foreignKey, onClose, onCreated}: Props) {
     const [question, setQuestion] = useState('')
     const [answerA, setAnswerA] = useState('')
     const [answerB, setAnswerB] = useState('')
@@ -44,10 +47,12 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
         }
 
         const { error } = await supabase
-            .from('assignment_questions')
+            //.from('assignment_questions')
+            .from(tableName)
             .insert([
                 {
-                    assignment_id: assignmentId,
+                    //assignment_id: assignmentId,
+                    [foreignKey]: parentId,
 
                     question,
 
@@ -189,6 +194,8 @@ function CreateQuestionModal({ assignmentId, onClose, onCreated}: Props) {
                         </label>
                     ))}
                 </div>
+
+                <label>Marks</label>
 
                 <input
                     type="number"

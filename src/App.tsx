@@ -10,6 +10,8 @@ import StudentDashboard from './UI/pages/StudentDashboard';
 import CourseDetailsPage from './UI/pages/CourseDetailsPage';
 import AssignmentPage from './UI/pages/AssignmentPage';
 import AssignmentDetailsPage from './UI/pages/AssignmentDetailsPage';
+import ExamPage from './UI/pages/ExamPage';
+import ExamDetailsPage from './UI/pages/ExamDetailsPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
@@ -69,6 +71,8 @@ function App() {
         <Route path="/teacher/course/:id" element={<CourseDetailsPage />} />
         <Route path="/teacher/course/:id/assignments" element={<AssignmentPage />} />
         <Route path="/teacher/assignment/:id" element={<AssignmentDetailsPage />} />
+        <Route path="/teacher/course/:id/exams" element={<ExamPage />} />
+        <Route path="/teacher/exam/:id" element={<ExamDetailsPage />} />
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
