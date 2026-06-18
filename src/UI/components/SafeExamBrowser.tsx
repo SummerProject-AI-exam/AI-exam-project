@@ -36,6 +36,11 @@ function ExamPortal() {
         setExamSubmitted(true);
     };
 
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+    };
+
+    //First page outside of SEB that guides to launch SEB
     return (
         <div style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '60px 20px', minHeight: '100vh', backgroundColor: '#f4f5f6' }}>
 
@@ -54,7 +59,10 @@ function ExamPortal() {
             )}
             
             {userInsideSEB && !examSubmitted && (
-                <div style={{ background: '#ffffff', padding: '30px', border: secondsLeft < 60 ? '2px solid #d32f2f' : '2px solid #0070f3', borderRadius: '12px', maxWidth: '600px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,112,243,0.08)', transition: 'border 0.3s ease' }}>
+                <div 
+                    onContextMenu={handleContextMenu}
+                    style={{ background: '#ffffff', padding: '30px', border: secondsLeft < 60 ? '2px solid #d32f2f' : '2px solid #0070f3', borderRadius: '12px', maxWidth: '600px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,112,243,0.08)', transition: 'border 0.3s ease' }}
+                >
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
                         <span style={{ background: '#e1f5fe', color: '#0288d1', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold' }}>Environment Locked</span>
