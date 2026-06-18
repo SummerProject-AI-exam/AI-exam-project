@@ -179,6 +179,8 @@ function EditQuestionModal ({ questionData, tableName, onClose, onUpdated}: Prop
                     ))}
                 </div>
 
+                <label>Marks</label>
+
                 <input
                     type="number"
                     placeholder="Score"
