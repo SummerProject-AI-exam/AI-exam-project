@@ -30,18 +30,28 @@ function TeacherNavbar({
 
     return (
         <div className="teacher-navbar">
-            <button onClick={handleActiveCourses}>
-                Active Courses
-            </button>
+            <div
+                className="teacher-logo"
+                onClick={() => navigate('/teacher')}
+            >
+                AI Exam Platform
+            </div>
+            <div className="nav-left">
+
+            
+                <button onClick={handleActiveCourses}>
+                    Active Courses
+                </button>
             
 
-            <button onClick={() => navigate('/teacher/reports')}>
-                Reports
-            </button>
+                <button onClick={() => navigate('/teacher/reports')}>
+                    Reports
+                </button>
 
-            <button onClick={handlePreviousCourses}>
-                Previous Courses
-            </button>
+                <button onClick={handlePreviousCourses}>
+                    Previous Courses
+                </button>
+            </div>
 
             <button
                 className="logout-btn" 
