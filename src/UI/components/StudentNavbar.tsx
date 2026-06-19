@@ -22,6 +22,13 @@ function StudentNavbar() {
 
                 <button
                     className="student-nav-btn"
+                    onClick={() => navigate('/student/available-courses')}
+                >
+                    Available Courses
+                </button>
+
+                <button
+                    className="student-nav-btn"
                     onClick={() => navigate('/student/courses')}
                 >
                     My Courses
