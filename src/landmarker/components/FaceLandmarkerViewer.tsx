@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWebcam } from "../hooks/useWebcam";
 import { useFPS } from "../hooks/useFPS";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
@@ -8,40 +8,63 @@ import { useCameraOff } from "../analysis/useCameraOff";
 import { AlertPanel } from "../ui/AlertPanel";
 import { useAlerts } from "../alerts/useAlerts";
 
-
 export default function FaceLandmarkerViewer() {
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get("sessionId") ?? "";
 
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results, cameraReady } = useFaceLandmarker(videoRef);
+
+  // FACE COUNT CHANGE LOG
   const faceCount = results?.faceLandmarks?.length ?? 0;
+
+
+  const prevFaceCountRef = useRef<number | null>(null);
+  if (prevFaceCountRef.current !== faceCount) {
+    console.log("FACE COUNT CHANGED:", {
+      prev: prevFaceCountRef.current,
+      now: faceCount,
+      hasFace: faceCount > 0
+    });
+    prevFaceCountRef.current = faceCount;
+  }
+
   const faceDetected = faceCount === 1;
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
-  const alert = useAlerts(
-    {
-      faceCount,
-      cameraReady,
-      cameraBlocked,
-      cameraOff
-    },
-    sessionId
-  );
+  // ALERT INPUT CHANGE LOG
+  const alertInput = { faceCount, cameraReady, cameraBlocked, cameraOff };
+  const prevAlertInputRef = useRef<any>(null);
 
+  if (JSON.stringify(prevAlertInputRef.current) !== JSON.stringify(alertInput)) {
+    console.log("ALERT INPUT CHANGED:", alertInput);
+    prevAlertInputRef.current = alertInput;
+  }
+
+  const alert = useAlerts(alertInput, sessionId);
+
+  // FINAL ALERT STATE LOG
+  const prevAlertRef = useRef<any>(null);
+  if (prevAlertRef.current?.type !== alert?.type) {
+    console.log("ALERT STATE CHANGED:", {
+      prev: prevAlertRef.current?.type,
+      now: alert?.type
+    });
+    prevAlertRef.current = alert;
+  }
 
   const { fps, updateFPS } = useFPS();
 
-  useEffect(() => {
-    startCamera();
-    return () => stopCamera();
-  }, []);
+ useEffect(() => {
+  startCamera();
+  return () => stopCamera();
+}, [startCamera, stopCamera]);
+
 
   useEffect(() => {
     if (results) updateFPS();
   }, [results]);
-
 
   return (
     <div
@@ -105,6 +128,7 @@ export default function FaceLandmarkerViewer() {
           transform: "scaleX(-1)",
         }}
       />
+
       <AlertPanel alert={alert} />
     </div>
   );

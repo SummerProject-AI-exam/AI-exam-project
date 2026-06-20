@@ -3,8 +3,8 @@ import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { drawLandmarks } from "../utils/drawLandmarks";
 
 type FaceLandmarkerOptions = {
-  fps?: number;          // target FPS (for throttling)
-  maxDurationMs?: number; // auto-stop after this time (optional)
+  fps?: number;
+  maxDurationMs?: number;
 };
 
 export function useFaceLandmarker(
@@ -16,48 +16,51 @@ export function useFaceLandmarker(
   const [results, setResults] = useState<any>(null);
   const [cameraReady, setCameraReady] = useState(false);
 
- let lastGoodFrame: any = null;
+  const lastGoodFrameRef = useRef<any>(null);
+
+  const startedRef = useRef(false);
 
   function cheatingSafeFilter(detection: any, timestamp: number) {
-  if (!detection || !detection.faceLandmarks || detection.faceLandmarks.length === 0) {
-    return null; // no face → viewer already handles this
-  }
+    const lastGood = lastGoodFrameRef.current;
 
-  const landmarks = detection.faceLandmarks[0];
-  const bbox = detection.faceBlendshapes?.[0]?.boundingBox;
-
-  // ⭐ RULE 1: Face not readable (too many zero points)
-  const zeroPoints = landmarks.filter((pt: any) => pt.x === 0 && pt.y === 0).length;
-  if (zeroPoints > 10) {
-    // reject this frame, keep last good one
-    return lastGoodFrame;
-  }
-
-  if (bbox) {
-    if (
-      bbox.xMin < 0.02 ||
-      bbox.yMin < 0.02 ||
-      bbox.xMax > 0.98 ||
-      bbox.yMax > 0.98
-    ) {
-      return lastGoodFrame;
+    if (!detection || !detection.faceLandmarks || detection.faceLandmarks.length === 0) {
+      return null;
     }
+
+    const landmarks = detection.faceLandmarks[0];
+
+    const bbox = computeBoundingBox(landmarks);
+
+    if (!lastGood) {
+      lastGoodFrameRef.current = detection;
+      return detection;
+    }
+
+    const zeroPoints = landmarks.filter((pt: any) => pt.x === 0 && pt.y === 0).length;
+    if (zeroPoints > 10) {
+      return lastGood;
+    }
+
+    const movement = computeMovement(lastGood, detection);
+    if (movement > 0.12) {
+      return lastGood;
+    }
+
+    lastGoodFrameRef.current = detection;
+    return detection;
   }
-
-  // ⭐ SAFE FRAME
-  lastGoodFrame = detection;
-  return detection;
-}
-
 
   useEffect(() => {
+
     if (!videoRef || !videoRef.current) return;
+    if (startedRef.current) return;
+    startedRef.current = true;
 
     let landmarker: FaceLandmarker | null = null;
     let animationFrameId: number;
     let stopTimeout: number | undefined;
 
-    const fps = options?.fps ?? 60;
+    const fps = options?.fps ?? 30;
     const maxDurationMs = options?.maxDurationMs;
     const frameInterval = 1000 / fps;
     let lastTime = 0;
@@ -90,10 +93,12 @@ export function useFaceLandmarker(
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-        if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) return;
+        if (!cameraReady) setCameraReady(true);
+        if (!ctx) return;
 
-        if (!cameraReady) {
-          setCameraReady(true);
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          setResults(null);
+          return;
         }
 
         canvas.width = video.videoWidth;
@@ -101,14 +106,15 @@ export function useFaceLandmarker(
 
         const detection = landmarker.detectForVideo(video, now);
         const safeFrame = cheatingSafeFilter(detection, now);
-        
-        setResults(safeFrame ?? detection);
+        const frameToUse = safeFrame ?? detection;
+
+        setResults(frameToUse);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (detection.faceLandmarks?.length > 0) {
+        if (frameToUse?.faceLandmarks?.length > 0) {
           drawLandmarks(
             ctx,
-            detection.faceLandmarks[0],
+            frameToUse.faceLandmarks[0],
             canvas.width,
             canvas.height
           );
@@ -118,11 +124,9 @@ export function useFaceLandmarker(
       animationFrameId = requestAnimationFrame(render);
 
       if (maxDurationMs != null) {
-        // Phase 1: auto-stop after given duration
         stopTimeout = window.setTimeout(() => {
           cancelAnimationFrame(animationFrameId);
           landmarker?.close();
-          console.log("FaceLandmarker: auto-stopped after", maxDurationMs, "ms");
         }, maxDurationMs);
       }
     }
@@ -130,13 +134,42 @@ export function useFaceLandmarker(
     init();
 
     return () => {
-      if (stopTimeout !== undefined) {
-        clearTimeout(stopTimeout);
-      }
+      if (stopTimeout !== undefined) clearTimeout(stopTimeout);
       cancelAnimationFrame(animationFrameId);
       landmarker?.close();
     };
-  }, [videoRef, options?.fps, options?.maxDurationMs]);
+  }, [videoRef]); 
 
   return { canvasRef, isLoaded, results, cameraReady };
+}
+
+// ⭐ NEW: bounding box computation
+function computeBoundingBox(landmarks: any[]) {
+  let minX = 1, minY = 1, maxX = 0, maxY = 0;
+
+  for (const pt of landmarks) {
+    if (pt.x < minX) minX = pt.x;
+    if (pt.y < minY) minY = pt.y;
+    if (pt.x > maxX) maxX = pt.x;
+    if (pt.y > maxY) maxY = pt.y;
+  }
+
+  return { xMin: minX, yMin: minY, xMax: maxX, yMax: maxY };
+}
+
+function computeMovement(prev: any, curr: any) {
+  const prevPts = prev.faceLandmarks[0];
+  const currPts = curr.faceLandmarks[0];
+
+  let total = 0;
+  let count = 0;
+
+  for (let i = 0; i < prevPts.length; i++) {
+    const dx = prevPts[i].x - currPts[i].x;
+    const dy = prevPts[i].y - currPts[i].y;
+    total += Math.sqrt(dx * dx + dy * dy);
+    count++;
+  }
+
+  return total / count;
 }
