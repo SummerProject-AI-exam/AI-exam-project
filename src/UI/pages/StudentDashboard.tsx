@@ -12,38 +12,58 @@ function StudentDashboard() {
     const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
     const [upcomingAssignments, setUpcomingAssignments] = useState<any[]>([])
     const [upcomingExams, setUpcomingExams] = useState<any[]>([])
+   
 
     useEffect(() => {
-        fetchEnrolledCourses()
-        fetchUpcomingAssignments()
-        fetchUpcomingExams()
+
+        const loadDashboard = async () => {
+
+            const { data, error } = await supabase
+                .from('Enrollment')
+                .select('course_id')
+                .eq('student_id', currentUser.id)
+
+            if (error) {
+                console.error(error)
+                return
+            }
+
+            const ids = data?.map(item => item.course_id) || []
+
+            setEnrolledCourses(data || [])
+
+            await fetchUpcomingAssignments(ids)
+
+            await fetchUpcomingExams(ids)
+
+
+        }
+
+        loadDashboard()
+        
     }, [])
 
-    const fetchEnrolledCourses = async () => {
+    
 
-        const { data, error} = await supabase
-            .from('Enrollment')
-            .select(`
-                course_id,
-                Course (
-                    id,
-                    course_name
-                )
-            `)
-            .eq('stuent_id', currentUser.id)
+    const fetchUpcomingAssignments = async (
+        enrolledCourseIds: string[]
+    ) => {
 
-        if (error) {
-            console.error(error)
+        if (enrolledCourseIds.length === 0) {
+            setUpcomingAssignments([])
             return
         }
 
-        setEnrolledCourses(data || [])
-    }
-
-    const fetchUpcomingAssignments = async () => {
         const { data, error } = await supabase
             .from('Assignment')
-            .select('*')
+            .select(`
+                *,
+                Course (
+                    course_name
+                )
+            `)
+            .in('course_id', enrolledCourseIds)
+            .lte('publish_date', new Date().toISOString())
             .gte(
                 'due_date',
                 new Date().toISOString()
@@ -62,11 +82,24 @@ function StudentDashboard() {
         setUpcomingAssignments(data || [])
     }
 
-    const fetchUpcomingExams = async () => {
+    const fetchUpcomingExams = async (
+        enrolledCourseIds: string[]
+    ) => {
+
+        if (enrolledCourseIds.length === 0) {
+            setUpcomingExams([])
+            return
+        }
 
         const { data, error } = await supabase
             .from('Exam')
-            .select('*')
+            .select(`
+                *,
+                Course (
+                    course_name
+                )
+            `)
+            .in('course_id', enrolledCourseIds)
             .gte(
                 'start_time',
                 new Date().toISOString()
@@ -83,6 +116,8 @@ function StudentDashboard() {
 
         setUpcomingExams(data || [])
     }
+
+
     return (
         <div className="student-dashboard">
 
@@ -106,7 +141,7 @@ function StudentDashboard() {
                 </p>
             </div>
 
-            <div className="dashboard-section">
+            <div className="student-dashboard-section">
                 <h2>Upcoming Assignments</h2>
 
                 {upcomingAssignments.length === 0 ? (
@@ -115,8 +150,12 @@ function StudentDashboard() {
                     upcomingAssignments.map(assignment => (
                         <div
                             key={assignment.id}
-                            className="dashboard-card"
+                            className="student-dashboard-card"
                         >
+                            <h4>
+                                {assignment.Course?.course_name}
+                            </h4>
+                            
                             <h3>{assignment.title}</h3>
 
                             <p>
@@ -133,7 +172,7 @@ function StudentDashboard() {
                 )}
             </div>
 
-            <div className="dashboard-section">
+            <div className="student-dashboard-section">
                 <h2>Upcoming Exams</h2>
 
                 {upcomingExams.length === 0 ? (
@@ -142,8 +181,12 @@ function StudentDashboard() {
                     upcomingExams.map(exam => (
                         <div
                             key={exam.id}
-                            className="dashboard-card"
+                            className="student-dashboard-card"
                         >
+                            <h4>
+                                {exam.Course?.course_name}
+                            </h4>
+
                             <h3>{exam.title}</h3>
 
                             <p>

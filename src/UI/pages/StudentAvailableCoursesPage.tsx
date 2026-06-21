@@ -13,13 +13,16 @@ function StudentAvailableCoursesPage() {
 
     const studentId = currentUser.id
 
+    const now = new Date().toISOString()
+
     const fetchCourses = async () => {
 
         const { data, error } = await supabase
             .from('Course')
             .select('*')
             //.eq('is_active', true)
-            .gte('course_end_date', new Date().toISOString())
+            .lte('scheduled_publish_date', now)
+            .gte('course_end_date', now)
 
         if (error) {
             console.error(error)
@@ -81,7 +84,7 @@ function StudentAvailableCoursesPage() {
 
                 <h1>Available Courses</h1>
 
-                <div className="course-list">
+                <div className="student-course-list">
 
                     {courses.map(course => {
 
@@ -90,7 +93,7 @@ function StudentAvailableCoursesPage() {
                         return (
                             <div
                                 key={course.id}
-                                className="course-card"
+                                className="student-course-card"
                             >
                                 <h3>
                                     {course.course_name}
