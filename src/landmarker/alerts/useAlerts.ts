@@ -15,44 +15,82 @@ export function useAlerts(input: AlertInput, sessionId: string): AlertState | nu
   const rawAlert: AlertType | null = useRawAlerts(input);
   const stableAlert = useStableAlert(rawAlert, 300);
 
+// Debug: log raw and stable alerts only when they change
+const lastRawRef = useRef<AlertType | null>(null);
+const lastStableRef = useRef<AlertType | null>(null);
+
+if (rawAlert !== lastRawRef.current) {
+  console.log("RAW ALERT CHANGED:", rawAlert);
+  lastRawRef.current = rawAlert;
+}
+
+if (stableAlert?.type !== lastStableRef.current) {
+  console.log("STABLE ALERT CHANGED:", stableAlert);
+  lastStableRef.current = stableAlert?.type ?? null;
+}
+
   const prevAlertTypeRef = useRef<AlertType | null>(null);
-  const readyTimestampRef = useRef<number | null>(null);
+  const hasFiredReadyRef = useRef(false);
 
   useEffect(() => {
-    if (!stableAlert) return;
+    const { cameraReady, cameraBlocked, cameraOff } = input;
 
-    const eventType = stableAlert.type;
-    const { cameraReady } = input;
+    if (cameraReady && !cameraBlocked && !hasFiredReadyRef.current) {
+      hasFiredReadyRef.current = true;
 
-    if (cameraReady && !readyTimestampRef.current) {
-      readyTimestampRef.current = Date.now();
-    }
-
-    if (!cameraReady && eventType !== "CAMERA_NOT_READY") {
-      return;
-    }
-
-    const now = Date.now();
-    if (
-      cameraReady &&
-      eventType === "CAMERA_OFF" &&
-      readyTimestampRef.current &&
-      now - readyTimestampRef.current < 500
-    ) {
-      return;
-    }
-
-    if (prevAlertTypeRef.current !== eventType) {
-      console.log("ALERT FIRED:", stableAlert);
-
+      console.log("ALERT FIRED: CAMERA_READY");
       void logFraudEvent({
         sessionId,
-        eventType
+        eventType: "CAMERA_READY",
       });
 
-      prevAlertTypeRef.current = eventType;
+      prevAlertTypeRef.current = "CAMERA_READY";
+      return;
     }
-  }, [stableAlert, input.cameraReady]);
+
+    if (!hasFiredReadyRef.current) {
+      return;
+    }
+
+    if (!stableAlert) {
+
+  prevAlertTypeRef.current = null;
+  return;
+}
+
+    const eventType = stableAlert.type;
+
+    if (eventType === "CAMERA_BLOCKED") {
+      if (prevAlertTypeRef.current !== "CAMERA_BLOCKED") {
+        console.log("ALERT FIRED: CAMERA_BLOCKED");
+        void logFraudEvent({
+          sessionId,
+          eventType: "CAMERA_BLOCKED",
+        });
+        prevAlertTypeRef.current = "CAMERA_BLOCKED";
+      }
+      return;
+    }
+
+if (prevAlertTypeRef.current !== eventType) {
+  console.log("ALERT FIRED:", stableAlert);
+
+  if (eventType !== "OK") {
+    void logFraudEvent({
+      sessionId,
+      eventType,
+    });
+  }
+
+  prevAlertTypeRef.current = eventType;
+}
+
+  }, [
+    stableAlert,
+    input.cameraReady,
+    input.cameraBlocked,
+    input.cameraOff,
+  ]);
 
   return stableAlert;
 }
