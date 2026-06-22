@@ -31,6 +31,11 @@ function ExamPortal() {
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
 
+    const getWordCount = (text: string) => {
+        const trimmed = text.trim();
+        return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+    };
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setExamSubmitted(true);
@@ -38,6 +43,11 @@ function ExamPortal() {
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        e.preventDefault();
+        alert("Pasting text is disabled in this exam session.");
     };
 
     //First page outside of SEB that guides to launch SEB
@@ -81,12 +91,15 @@ function ExamPortal() {
                                 <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#333' }}>
                                     Question 1: First example question
                                 </label>
-                                <span style={{ fontSize: '12px', color: '#777' }}>{answer.length} characters</span>
+                                <span style={{ fontSize: '12px', color: '#777' }}>
+                                    {getWordCount(answer)} words | {answer.length} characters
+                                </span>
                             </div>
                             <textarea
                                 rows={5}
                                 value={answer}
                                 onChange={(e) => setAnswer(e.target.value)}
+                                onPaste={handlePaste}
                                 placeholder="Your answer here..."
                                 style={{ width: '100%', padding: '12px', boxSizing: 'border-box', borderRadius: '6px', border: secondsLeft < 60 ? '1px solid #d32f2f' : '1px solid #ccc', fontSize: '16px', transition: 'border 0.3s ease' }}
                                 required
