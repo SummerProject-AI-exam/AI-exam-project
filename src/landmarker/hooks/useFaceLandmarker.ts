@@ -143,7 +143,6 @@ export function useFaceLandmarker(
   return { canvasRef, isLoaded, results, cameraReady };
 }
 
-// ⭐ NEW: bounding box computation
 function computeBoundingBox(landmarks: any[]) {
   let minX = 1, minY = 1, maxX = 0, maxY = 0;
 
