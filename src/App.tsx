@@ -15,6 +15,7 @@ import ExamDetailsPage from './UI/pages/ExamDetailsPage';
 import StudentAvailableCoursesPage from './UI/pages/StudentAvailableCoursesPage';
 import StudentCoursesPage from './UI/pages/StudentCoursesPage';
 import StudentCourseDetailsPage from './UI/pages/StudentCourseDetailsPage';
+import StudentAssignmentDetailsPage from './UI/pages/StudentAssignmentDetailsPage';
 
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
@@ -81,6 +82,7 @@ function App() {
         <Route path="/student/available-courses" element={<StudentAvailableCoursesPage />} />
         <Route path="/student/courses" element={<StudentCoursesPage />} />
         <Route path="/student/course/:id" element={<StudentCourseDetailsPage />} />
+        <Route path="/student/assignment/:id" element={<StudentAssignmentDetailsPage />} />    
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo />} />

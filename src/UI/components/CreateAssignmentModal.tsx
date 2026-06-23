@@ -47,8 +47,8 @@ function CreateAssignmentModal({ courseId, onClose, onCreated }: Props) {
                     title: title,
                     description: description,
                     assignment_type: assignmentType,
-                    publish_date: publishDate,
-                    due_date: dueDate,
+                    publish_date: new Date(publishDate).toISOString(),
+                    due_date: new Date(dueDate).toISOString(),
                     is_active: isActive,
                     total_marks: Number(totalMarks)
                 }
