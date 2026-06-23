@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from '../lib/supabase';
 import StudentNavbar from "../components/StudentNavbar";
-
+import AnswerReview from "../components/AnswerReview";
+import QuestionCard from "../components/QuestionCard";
 
 function StudentAssignmentDetailsPage() {
 
@@ -18,6 +19,9 @@ function StudentAssignmentDetailsPage() {
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
 
     const [score, setScore] = useState<number | null>(null)
+
+    const [showReview, setShowReview] = useState(false)
+    const [reviewAnswers, setReviewAnswers] = useState<any[]>([])
 
 
     useEffect(() => {
@@ -222,6 +226,44 @@ function StudentAssignmentDetailsPage() {
         setAlreadySubmitted(true)
     }
 
+    const loadReviewAnswers = async () => {
+
+        const { data: submission } = await supabase
+            .from('assignment_submissions')
+            .select('id')
+            .eq('assignment_id', id)
+            .eq('student_id', currentUser.id)
+            .single()
+
+        if (!submission) return
+
+        const { data, error } = await supabase
+            .from('student_answers')
+            .select(`
+                *,
+                assignment_questions (
+                    question,
+                    answer_a,
+                    answer_b,
+                    answer_c,
+                    answer_d,
+                    answer_e,
+                    answer_f,
+                    correct_answers,
+                    allow_multiple_answers
+                )
+            `)
+            .eq('submission_id', submission.id)
+
+        if (error) {
+            console.error(error)
+            return
+        }
+
+        setReviewAnswers(data || [])
+        setShowReview(true)
+    } 
+
     return (
         <div>
             <StudentNavbar />
@@ -253,79 +295,66 @@ function StudentAssignmentDetailsPage() {
                 </div>
 
                 {alreadySubmitted ? (
-                    <div className="student-detail-card">
-                        <h2>Assignment Submitted</h2>
-                        <p>
-                            You have already submitted this assignment.
-                        </p>
-
-                        {score !== null && (
+                    <>
+                   
+                        <div className="student-detail-card">
+                            <h2>Assignment Submitted</h2>
                             <p>
-                                Your Score: {score}
+                                You have already submitted this assignment.
                             </p>
+
+                            {score !== null && (
+                                <p>
+                                    Your Score: {score}
+                                </p>
+                            )}
+
+                            <button
+                                className="enroll-btn"
+                                onClick={() => {
+                                    if (showReview) {
+                                        setShowReview(false)
+                                    } else {
+                                        loadReviewAnswers()
+                                    }
+                                }}
+                            >
+                                {showReview
+                                    ? 'Hide Review'
+                                    : 'Review Answers'}
+                            </button>
+
+                        </div>
+
+                        {showReview && (
+                            <AnswerReview
+                                reviewAnswers={reviewAnswers}
+                            />
                         )}
-                    </div>
+
+                    </>
+
+                    
                 ) : (
 
                     <>
                         {questions.map((question, index) => (
-                            <div
+                            
+                            <QuestionCard
                                 key={question.id}
-                                className="student-dashboard-card"
-                            >
-                                <h3>
-                                    Question {index + 1}
-                                </h3>
-                                <p>
-                                    {question.question}
-                                </p>
-                                {[
-                                    { label: 'A', value: question.answer_a},
-                                    { label: 'B', value: question.answer_b},
-                                    { label: 'C', value: question.answer_c},
-                                    { label: 'D', value: question.answer_d},
-                                    { label: 'E', value: question.answer_e},
-                                    { label: 'F', value: question.answer_f}
-                                ]
-                                    .filter(option => option.value)
-                                    .map(option => (
-                                        <label
-                                            key={option.label}
-                                            style={{
-                                                display: 'block',
-                                                marginBottom: '10px'
-                                            }}
-                                        >
-                                            <input
-                                                type={question.allow_multiple_answers ? 'checkbox' : 'radio'}
-                                                name={question.id}
-                                                value={option.value}
-                                                checked={
-                                                    answers[question.id]?.includes(option.value) || false
-                                                }
-                                                onChange={() => {
-                                                    if (question.allow_multiple_answers) {
-                                                        handleMultipleAnswer(
-                                                            question.id, 
-                                                            option.value
-                                                        )
-
-                                                    } else {
-                                                        handleSingleAnswer(
-                                                            question.id, 
-                                                            option.value
-                                                        )
-                                                    }
-                                                }}
-                                            />
-
-                                        {' '}
-                                        <strong>{option.label}.</strong>
-                                        {' '}
-                                        {option.value}
-                                        </label>
-                                    ))}
-                            </div>
+                                question={question}
+                                questionNumber={index + 1}
+                                selectedAnswers={
+                                    answers[question.id] || []
+                                }
+                                onSingleAnswer={
+                                    handleSingleAnswer
+                                }
+                                onMultipleAnswer={
+                                    handleMultipleAnswer
+                                }
+                            />
+                            
                         ))}
                         
                         <button
