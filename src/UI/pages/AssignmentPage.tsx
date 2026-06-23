@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import CreateAssignmentModal from "../components/CreateAssignmentModal"
 import { supabase } from "../lib/supabase"
 import TeacherNavbar from "../components/TeacherNavbar";
+import EditAssignmentModal from "../components/EditAssignmentModal";
 
 type Assignment = {
     id: string
@@ -26,6 +27,8 @@ function AssignmentPage() {
     const [showModal, setShowModal] = useState(false)
     const [assignments, setAssignments] = useState<Assignment[]>([])
     const [courseName, setCourseName] = useState('')
+
+    const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null)
 
     const fetchAssignments = async () => {
         const { data, error } = await supabase
@@ -67,6 +70,31 @@ function AssignmentPage() {
         fetchCourse()
     }, [id])
 
+    const handleDeleteAssignment = async (
+        assignmentId: string
+    ) => {
+
+        const confirmed = window.confirm(
+            'Delete this assignment?'
+        )
+
+        if (!confirmed) return
+
+        const { error } = await supabase
+            .from('Assignment')
+            .delete()
+            .eq('id', assignmentId)
+
+        if (error) {
+            console.error(error)
+            alert('Failed to delete assignment')
+            return
+        }
+
+        fetchAssignments()
+
+    }
+
 
     return (
         <div>
@@ -88,14 +116,23 @@ function AssignmentPage() {
                 />
             )}
 
+            {editingAssignment && (
+                <EditAssignmentModal
+                    assignment={editingAssignment}
+                    onClose={() => setEditingAssignment(null)}
+                    onUpdated={() => {
+                        fetchAssignments()
+                        setEditingAssignment(null)
+                    }}
+                />
+            )}
+
             <div className="assignment-list">
                 {assignments.map((assignment) => (
                     <div
                         key={assignment.id}
                         className="assignment-card"
-                        onClick={() =>
-                            navigate(`/teacher/assignment/${assignment.id}`)
-                        }
+                        
                     >
                         <h3>{assignment.title}</h3>
 
@@ -120,6 +157,30 @@ function AssignmentPage() {
                                 Total Score:{""}
                                 {assignment.total_marks}
                             </span>
+                        </div>
+
+                        <div className="exam-actions">
+                            <button
+                                className="manage-btn"
+                                onClick={() => navigate(`/teacher/assignment/${assignment.id}`)}
+                            >
+                                Manage Questions
+                            </button>
+
+                            <button
+                                className="edit-btn"
+                                onClick={() => setEditingAssignment(assignment)}
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                className="delete-btn"
+                                onClick={() => handleDeleteAssignment(assignment.id)}
+                            >
+                                Delete
+
+                            </button>
                         </div>
                     </div>    
                 ))}
