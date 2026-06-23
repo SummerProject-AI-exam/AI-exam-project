@@ -601,9 +601,18 @@ body {
   border-radius: 12px;
   margin-bottom: 15px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: 0.2s ease;
+  transition: 0.2s ease;  
 }
 
 .student-dashboard-card:hover {
   transform: translateY(-2px);
+}
+
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }

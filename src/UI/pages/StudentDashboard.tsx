@@ -1,9 +1,12 @@
 import { useEffect, useState  } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from '../lib/supabase'
 import StudentNavbar from '../components/StudentNavbar'
 
 
 function StudentDashboard() {
+
+    const navigate = useNavigate()
 
     const currentUser = JSON.parse(
         sessionStorage.getItem('currentUser') || '{}'
@@ -150,7 +153,8 @@ function StudentDashboard() {
                     upcomingAssignments.map(assignment => (
                         <div
                             key={assignment.id}
-                            className="student-dashboard-card"
+                            className="student-dashboard-card clickable-card"
+                            onClick={() => navigate(`/student/assignment/${assignment.id}`)}
                         >
                             <h4>
                                 {assignment.Course?.course_name}
