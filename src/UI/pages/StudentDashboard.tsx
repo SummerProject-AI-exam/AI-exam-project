@@ -186,6 +186,7 @@ function StudentDashboard() {
                         <div
                             key={exam.id}
                             className="student-dashboard-card"
+                            onClick={() => navigate(`/student/exam/${exam.id}`)}
                         >
                             <h4>
                                 {exam.Course?.course_name}

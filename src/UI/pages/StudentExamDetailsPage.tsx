@@ -5,7 +5,7 @@ import StudentNavbar from "../components/StudentNavbar";
 import AnswerReview from "../components/AnswerReview";
 import QuestionCard from "../components/QuestionCard";
 
-function StudentAssignmentDetailsPage() {
+function StudentExamDetailsPage() {
 
     const { id } = useParams()
 
@@ -13,7 +13,7 @@ function StudentAssignmentDetailsPage() {
         sessionStorage.getItem('currentUser') || '{}'
     )
 
-    const [assignment, setAssignment] = useState<any>(null)
+    const [exam, setExam] = useState<any>(null)
     const [questions, setQuestions] = useState<any[]>([])
     const [answers, setAnswers] = useState<Record<string, string[]>>({})
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
@@ -25,15 +25,26 @@ function StudentAssignmentDetailsPage() {
 
 
     useEffect(() => {
-        fetchAssignment()
-        fetchQuestions()
-        checkSubmission()
+
+        const loadPage = async () => {
+
+            await fetchExam()
+            await fetchQuestions()
+            const submitted = await checkSubmission()
+
+            if (!submitted) {
+                await startExamSession()
+            }
+        }
+
+        loadPage()
+        
     }, [id])
 
-    const fetchAssignment = async () => {
+    const fetchExam = async () => {
 
         const { data, error} = await supabase
-            .from('Assignment')
+            .from('Exam')
             .select('*')
             .eq('id', id)
             .single()
@@ -43,15 +54,15 @@ function StudentAssignmentDetailsPage() {
             return
         }
 
-        setAssignment(data)
+        setExam(data)
     }
 
     const fetchQuestions = async () => {
 
         const { data, error } = await supabase
-            .from('assignment_questions')
+            .from('Multiple_Choice_Questions')
             .select('*')
-            .eq('assignment_id', id)
+            .eq('exam_id', id)
 
         if (error) {
             console.error(error)
@@ -64,16 +75,48 @@ function StudentAssignmentDetailsPage() {
     const checkSubmission = async () => {
 
         const { data } = await supabase
-            .from('assignment_submissions')
+            .from('exam_submissions')
             .select('*')
-            .eq('assignment_id', id)
+            .eq('exam_id', id)
             .eq('student_id', currentUser.id)
             .maybeSingle()
 
         if (data) {
             setAlreadySubmitted(true)
             setScore(data.total_score)
+            return true
         }
+
+        return false
+    }
+
+    const startExamSession = async () => {
+
+        const { data } = await supabase
+            .from('Exam_Sessions')
+            .select('*')
+            .eq('exam_id', id)
+            .eq('student_id', currentUser.id)
+            .maybeSingle()
+
+        // session already exists
+        if (data) return
+
+        const { error } = await supabase
+            .from('Exam_Sessions')
+            .insert([
+                {
+                    exam_id: id,
+                    student_id: currentUser.id,
+                    started_at: new Date().toISOString(),
+                    status: 'In Progress'
+                }
+            ])
+
+        if (error) {
+            console.error(error)
+        }
+            
     }
 
     const handleSingleAnswer = (
@@ -123,19 +166,19 @@ function StudentAssignmentDetailsPage() {
 
         if (
             !window.confirm(
-                'Submit assignment?'
+                'Submit exam?'
             )
         ) {
             return
         }
 
-        const isLate = new Date().getTime() > new Date(assignment.due_date).getTime()
+        const isLate = new Date().getTime() > new Date(exam.end_time).getTime()
 
         const { data: submission, error } = await supabase
-            .from('assignment_submissions')
+            .from('exam_submissions')
             .insert([
                 {
-                    assignment_id: id,
+                    exam_id: id,
                     student_id: currentUser.id,
                     submitted_at: new Date().toISOString(),
                     total_score: 0,
@@ -189,7 +232,7 @@ function StudentAssignmentDetailsPage() {
             totalScore += scoreAwarded
 
             const { error: answerError } = await supabase
-                .from('student_answers')
+                .from('exam_answers')
                 .insert([
                     {
                         submission_id: submission.id,
@@ -209,7 +252,7 @@ function StudentAssignmentDetailsPage() {
         }
 
         await supabase
-            .from('assignment_submissions')
+            .from('exam_submissions')
             .update({
                 total_score: totalScore
             })
@@ -217,10 +260,21 @@ function StudentAssignmentDetailsPage() {
                 'id',
                 submission.id
             )
+
+        await supabase
+            .from('Exam_Sessions')
+            .update({
+                ended_at: new Date().toISOString(),
+                status: 'Completed'
+            })
+            .eq('exam_id', id)
+            .eq('student_id', currentUser.id)
+
+
         setScore(totalScore)
 
         alert(
-            `Assignment Submitted.\nScore: ${totalScore}`
+            `Exam Submitted.\nScore: ${totalScore}`
         )
 
         setAlreadySubmitted(true)
@@ -229,19 +283,19 @@ function StudentAssignmentDetailsPage() {
     const loadReviewAnswers = async () => {
 
         const { data: submission } = await supabase
-            .from('assignment_submissions')
+            .from('exam_submissions')
             .select('id')
-            .eq('assignment_id', id)
+            .eq('exam_id', id)
             .eq('student_id', currentUser.id)
             .single()
 
         if (!submission) return
 
         const { data, error } = await supabase
-            .from('student_answers')
+            .from('exam_answers')
             .select(`
                 *,
-                assignment_questions (
+                Multiple_Choice_Questions (
                     question,
                     answer_a,
                     answer_b,
@@ -264,6 +318,8 @@ function StudentAssignmentDetailsPage() {
         setShowReview(true)
     } 
 
+    const totalMarks = questions.reduce((sum, q) => sum + q.score, 0)
+
     return (
         <div>
             <StudentNavbar />
@@ -272,25 +328,36 @@ function StudentAssignmentDetailsPage() {
                 <div className="student-detail-card">
 
                     <h1>
-                        {assignment?.title}
+                        {exam?.title}
                     </h1>
 
                     <p>
-                        {assignment?.description}
+                        {exam?.description}
                     </p>
 
                     <p>
-                        Due:
+                        Start:
                         {' '}
-                        {assignment?.due_date && new Date(
-                            assignment.due_date).toLocaleDateString(
-                                'en-GB'
-                            )}
+                        {exam?.start_time &&
+                            new Date(exam.start_time).toLocaleDateString('en-GB')}
+
+                    </p>
+
+                    <p>
+                        End:
+                        {' '}
+                        {exam?.end_time && 
+                            new Date(exam.end_time).toLocaleString('en-GB')}
+
+                    </p>
+
+                    <p>
+                        Duration:
+                        {' '}
+                        {exam?.duration_time && `${exam.duration_time} mins`} 
                     </p>
                     <p>
-                        Total Marks:
-                        {' '}
-                        {assignment?.total_marks}
+                        Total Marks: {totalMarks}
                     </p>
                 </div>
 
@@ -298,9 +365,9 @@ function StudentAssignmentDetailsPage() {
                     <>
                    
                         <div className="student-detail-card">
-                            <h2>Assignment Submitted</h2>
+                            <h2>Exam Submitted</h2>
                             <p>
-                                You have already submitted this assignment.
+                                You have already submitted this exam.
                             </p>
 
                             {score !== null && (
@@ -329,7 +396,8 @@ function StudentAssignmentDetailsPage() {
                         {showReview && (
                             <AnswerReview
                                 reviewAnswers={reviewAnswers}
-                                type="assignment"
+                                type="exam"
+                                
                             />
                         )}
 
@@ -362,7 +430,7 @@ function StudentAssignmentDetailsPage() {
                             className="enroll-btn"
                             onClick={handleSubmit}
                         >
-                            Submit Assignment
+                            Submit Exam
                         </button>
                     </>
                 )}
@@ -371,4 +439,4 @@ function StudentAssignmentDetailsPage() {
     )
 }
 
-export default StudentAssignmentDetailsPage
+export default StudentExamDetailsPage
