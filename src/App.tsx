@@ -18,6 +18,7 @@ import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
+import GazeTestPage from './pages/GazeTest';
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -77,6 +78,7 @@ function App() {
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo />} />
+        <Route path="/gaze-test" element={<GazeTestPage />} />
       </Routes>
     </BrowserRouter>
   );
