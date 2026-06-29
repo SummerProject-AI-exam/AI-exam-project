@@ -13,8 +13,8 @@ export function classifyGazeDirection(
 ): GazeDirection {
   if (!valid) return "INVALID";
 
-  const H = 0.15; 
-  const V = 0.15; 
+  const H = 0.03; 
+  const V = 0.001; 
 
   // Horizontal
   if (x > H) return "RIGHT";

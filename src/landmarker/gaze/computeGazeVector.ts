@@ -63,5 +63,16 @@ export function computeGazeVector(features: LandmarkFeatures): GazeVector {
   const gazeX = (leftX + rightX) / 2;
   const gazeY = (leftY + rightY) / 2;
 
+  // Scale factors (universal)
+  const SCALE_X = 20;
+  const SCALE_Y = 3;
+
+  return {
+    x: gazeX * SCALE_X,
+    y: gazeY * SCALE_Y,
+    valid: true,
+  };
+
+
   return { x: gazeX, y: gazeY, valid: true };
 }
