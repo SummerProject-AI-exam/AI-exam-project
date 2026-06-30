@@ -6,6 +6,8 @@ import AnswerReview from "../components/AnswerReview";
 import QuestionCard from "../components/QuestionCard";
 import { formatDuration } from "../utils/formatDuration";
 import ExamTimer from "../components/ExamTimer";
+import MonitoringDemo from "../../window_blur_focus/pages/MonitorDemo";
+
 
 function StudentExamDetailsPage() {
 
@@ -22,6 +24,8 @@ function StudentExamDetailsPage() {
     const [examStarted, setExamStarted] = useState(false)
     const [examAvailable, setExamAvailable] = useState(false)
     const [examEnded, setExamEnded] = useState(false)
+
+    const [sessionId, setSessionId] = useState("")
 
     const [score, setScore] = useState<number | null>(null)
 
@@ -107,10 +111,19 @@ function StudentExamDetailsPage() {
             .eq('student_id', currentUser.id)
             .maybeSingle()
 
-        // session already exists
-        if (data) return
+        console.log('existing session:', data)
+        
 
-        const { error } = await supabase
+        // session already exists
+        if (data) {
+            console.log("Session already exists")
+
+            setSessionId(data.id)
+
+            return
+        }
+
+        const { data: insertedSession, error } = await supabase
             .from('Exam_Sessions')
             .insert([
                 {
@@ -120,10 +133,18 @@ function StudentExamDetailsPage() {
                     status: 'In Progress'
                 }
             ])
+            .select()
+            .single()
+
+        console.log("Inserted sesssion:", insertedSession)
+        console.log("Insert error:", error)
 
         if (error) {
             console.error(error)
+            return
         }
+
+        setSessionId(insertedSession.id)
             
     }
 
@@ -284,7 +305,7 @@ function StudentExamDetailsPage() {
             })
             .eq('exam_id', id)
             .eq('student_id', currentUser.id)
-
+            
 
         setScore(totalScore)
 
@@ -341,46 +362,62 @@ function StudentExamDetailsPage() {
 
             <div className="student-page-container">
                 <div className="student-detail-card">
+                    <div className="exam-header">
+                        
+                        <div className="exam-info">
 
-                    <h1>
-                        {exam?.title}
-                    </h1>
+                            <h1>
+                                {exam?.title}
+                            </h1>
 
-                    <p>
-                        {exam?.description}
-                    </p>
+                            <p>
+                                {exam?.description}
+                            </p>
 
-                    {!alreadySubmitted && examStarted && (
+                            <p>
+                                Start:
+                                {' '}
+                                {exam?.start_time &&
+                                new Date(exam.start_time).toLocaleString('en-GB')}
 
-                        <ExamTimer
-                            endTime={exam?.end_time}
-                            onTimeUp={handleSubmit}
-                        />
-                    )}
-                    <p>
-                        Start:
-                        {' '}
-                        {exam?.start_time &&
-                            new Date(exam.start_time).toLocaleString('en-GB')}
+                            </p>
 
-                    </p>
+                            <p>
+                                End:
+                                {' '}
+                                {exam?.end_time && 
+                                new Date(exam.end_time).toLocaleString('en-GB')}
 
-                    <p>
-                        End:
-                        {' '}
-                        {exam?.end_time && 
-                            new Date(exam.end_time).toLocaleString('en-GB')}
+                            </p>
 
-                    </p>
+                            <p>
+                                Duration:
+                                {' '}
+                                {exam?.duration_time && formatDuration(exam.duration_time) } 
+                            </p>
+                            <p>
+                                Total Marks: {totalMarks}
+                            </p>
+                        </div>
 
-                    <p>
-                        Duration:
-                        {' '}
-                        {exam?.duration_time && formatDuration(exam.duration_time) } 
-                    </p>
-                    <p>
-                        Total Marks: {totalMarks}
-                    </p>
+                        {!alreadySubmitted && examStarted && (
+                            <div className="exam-monitor-panel">
+
+                                <ExamTimer
+                                    endTime={exam?.end_time}
+                                    onTimeUp={handleSubmit}
+                                />
+
+                                <MonitoringDemo
+                                    sessionId={sessionId} 
+                                />
+
+                                
+                            </div>
+                        )}
+
+                    </div>
+
                 </div>
 
                 {alreadySubmitted ? (
