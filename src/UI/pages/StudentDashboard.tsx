@@ -57,7 +57,8 @@ function StudentDashboard() {
             return
         }
 
-        const { data, error } = await supabase
+        //Get upcoming assignments
+        const { data: assignments , error } = await supabase
             .from('Assignment')
             .select(`
                 *,
@@ -82,7 +83,27 @@ function StudentDashboard() {
             return
         }
 
-        setUpcomingAssignments(data || [])
+        // Get assignment already submitted by this student
+        const { data: submissions, error: submissionError } = await supabase
+            .from('assignment_submissions')
+            .select('assignment_id')
+            .eq('student_id', currentUser.id)
+
+
+        if (submissionError) {
+            console.error(submissionError)
+            return
+        }
+
+        const submittedIds = submissions?.map(item => item.assignment_id) || []
+
+        // Remove submitted assignments
+        const filterAssignments = 
+            (assignments || []).filter(
+                assignment => !submittedIds.includes(assignment.id)
+            )
+
+        setUpcomingAssignments(filterAssignments.slice(0, 5))
     }
 
     const fetchUpcomingExams = async (

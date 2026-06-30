@@ -4,6 +4,8 @@ import { supabase } from "../lib/supabase"
 import TeacherNavbar from "../components/TeacherNavbar";
 import CreateExamModal from "../components/CreateExamModal";
 import EditExamModal from "../components/EditExamModal";
+import { formatDuration } from "../utils/formatDuration";
+
 
 type Exam = {
     id: string
@@ -67,7 +69,7 @@ function ExamPage() {
         fetchExams()
         fetchCourse()
     }, [id])
-
+    /*
     const formatDuration = (minutes: number) => {
         const hours = Math.floor(minutes / 60)
         const remainingMinutes = minutes % 60
@@ -81,7 +83,7 @@ function ExamPage() {
         }
 
         return `${hours} hr${hours > 1 ? 's' : ''} ${remainingMinutes} mins`
-    }
+    } */
 
     const formatDateTime = (dateString: string) => {
         return new Date(dateString).toLocaleString('en-GB', {

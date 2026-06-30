@@ -616,3 +616,27 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
+
+/*=============================
+  EXAM TIMER
+  ============================= */
+
+.exam-timer{
+  margin:20px 0;
+  padding:16px;
+  border-radius:10px;
+  background: #fff3cd;
+  border:1px solid #ffe69c;
+  text-align: center;
+}
+
+.exam-timer h3{
+  margin-bottom: 8px;
+  color:#856404;
+}
+
+.exam-timer h2{
+  margin: 0;
+  font-size: 2rem;
+  color:#dc3545;
+}

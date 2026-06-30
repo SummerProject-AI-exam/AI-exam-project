@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import StudentNavbar from "../components/StudentNavbar";
 import AnswerReview from "../components/AnswerReview";
 import QuestionCard from "../components/QuestionCard";
+import { formatDuration } from "../utils/formatDuration";
+import ExamTimer from "../components/ExamTimer";
 
 function StudentExamDetailsPage() {
 
@@ -17,6 +19,9 @@ function StudentExamDetailsPage() {
     const [questions, setQuestions] = useState<any[]>([])
     const [answers, setAnswers] = useState<Record<string, string[]>>({})
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
+    const [examStarted, setExamStarted] = useState(false)
+    const [examAvailable, setExamAvailable] = useState(false)
+    const [examEnded, setExamEnded] = useState(false)
 
     const [score, setScore] = useState<number | null>(null)
 
@@ -30,11 +35,7 @@ function StudentExamDetailsPage() {
 
             await fetchExam()
             await fetchQuestions()
-            const submitted = await checkSubmission()
-
-            if (!submitted) {
-                await startExamSession()
-            }
+            await checkSubmission()
         }
 
         loadPage()
@@ -55,6 +56,13 @@ function StudentExamDetailsPage() {
         }
 
         setExam(data)
+
+        const now = new Date()
+        const start = new Date(data.start_time)
+        const end = new Date(data.end_time)
+
+        setExamAvailable(now >= start && now <= end)
+        setExamEnded(now > end)
     }
 
     const fetchQuestions = async () => {
@@ -117,6 +125,13 @@ function StudentExamDetailsPage() {
             console.error(error)
         }
             
+    }
+
+    const handleStartExam = async () => {
+
+        await startExamSession()
+
+        setExamStarted(true)
     }
 
     const handleSingleAnswer = (
@@ -335,11 +350,18 @@ function StudentExamDetailsPage() {
                         {exam?.description}
                     </p>
 
+                    {!alreadySubmitted && examStarted && (
+
+                        <ExamTimer
+                            endTime={exam?.end_time}
+                            onTimeUp={handleSubmit}
+                        />
+                    )}
                     <p>
                         Start:
                         {' '}
                         {exam?.start_time &&
-                            new Date(exam.start_time).toLocaleDateString('en-GB')}
+                            new Date(exam.start_time).toLocaleString('en-GB')}
 
                     </p>
 
@@ -354,7 +376,7 @@ function StudentExamDetailsPage() {
                     <p>
                         Duration:
                         {' '}
-                        {exam?.duration_time && `${exam.duration_time} mins`} 
+                        {exam?.duration_time && formatDuration(exam.duration_time) } 
                     </p>
                     <p>
                         Total Marks: {totalMarks}
@@ -403,7 +425,49 @@ function StudentExamDetailsPage() {
 
                     </>
 
-                    
+                ) : examEnded ? (
+
+                    <div className="student-detail-card">
+                        <h2>Exam Closed</h2>
+
+                        <p>
+                            The exam end time has passed
+                        </p>
+                    </div>
+                ) : !examAvailable ? (
+
+                    <div className="student-detail-card">
+                        <h2>Exam Not Started</h2>
+
+                        <p>
+                            You can start this exam only after the scheduled start time
+                        </p>
+
+                    </div>
+                
+
+                ) : !examStarted ? (
+
+                    <div className="student-detail-card">
+
+                        <h2>Ready to Start?</h2>
+
+                        <p>
+                            Click the button below when you are ready to begin the exam
+                        </p>
+
+                        
+
+                        <button
+                            className="enroll-btn"
+                            onClick={handleStartExam}
+                        >
+                            Start Exam
+                        </button>
+                        
+                    </div>
+                       
+
                 ) : (
 
                     <>
