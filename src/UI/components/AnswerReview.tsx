@@ -3,17 +3,22 @@ import QuestionCard from "./QuestionCard"
 
 type Props = {
     reviewAnswers: any[]
+    type: 'assignment' | 'exam'
 }
 
 function AnswerReview({
-    reviewAnswers
+    reviewAnswers,
+    type
 }: Props) {
 
     return (
         <>
             {reviewAnswers.map((item, index) => {
 
-                const question = item.assignment_questions
+                const question = 
+                    type === 'assignment'
+                        ? item.assignment_questions
+                        : item.Multiple_Choice_Questions
 
                 const answerMap: Record<string, string> = {
                     A: question.answer_a,
