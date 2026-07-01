@@ -87,7 +87,21 @@ function ExamPortal() {
             {userInsideSEB && !examSubmitted && (
                 <div 
                     onContextMenu={handleContextMenu}
-                    style={{ background: '#ffffff', padding: '36px', border: secondsLeft < 60 ? '2px solid #d32f2f' : '1px solid #e2e8f0', borderRadius: '16px', maxWidth: '640px', width: '100%', boxShadow: secondsLeft < 60 ? '0 20px 25px -5px rgba(211, 47, 47, 0.08)' : '0 10px 25px -5px rgba(0, 0, 0, 0.02)', transition: 'all 0.3s ease' }}
+                    onCopy={(e) => e.preventDefault()}
+                    style={{ 
+                        background: '#ffffff', 
+                        padding: '36px', 
+                        border: secondsLeft < 60 ? '2px solid #d32f2f' : '1px solid #e2e8f0', 
+                        borderRadius: '16px', 
+                        maxWidth: '640px', 
+                        width: '100%', 
+                        boxShadow: secondsLeft < 60 ? '0 20px 25px -5px rgba(211, 47, 47, 0.08)' : '0 10px 25px -5px rgba(0, 0, 0, 0.02)', 
+                        transition: 'all 0.3s ease',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                        userSelect: 'none'
+                    }}
                 >
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '18px', marginBottom: '24px' }}>
@@ -123,7 +137,23 @@ function ExamPortal() {
                                 onChange={(e) => setAnswer(e.target.value)}
                                 onPaste={handlePaste}
                                 placeholder="Your answer here..."
-                                style={{ width: '100%', padding: '16px', boxSizing: 'border-box', borderRadius: '10px', border: secondsLeft < 60 ? '1px solid #d32f2f' : '1px solid #ccc', fontSize: '16px', lineHeight: '1.6', transition: 'all 0.2s ease', outline: 'none', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)', color: '#0f172a' }}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '16px', 
+                                    boxSizing: 'border-box', 
+                                    borderRadius: '10px', 
+                                    border: secondsLeft < 60 ? '1px solid #d32f2f' : '1px solid #ccc', 
+                                    fontSize: '16px', 
+                                    lineHeight: '1.6', 
+                                    transition: 'all 0.2s ease', 
+                                    outline: 'none', 
+                                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)', 
+                                    color: '#0f172a',
+                                    WebkitUserSelect: 'text',
+                                    MozUserSelect: 'text',
+                                    msUserSelect: 'text',
+                                    userSelect: 'text'
+                                }}
                                 required
                             />
                         </div>
