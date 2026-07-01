@@ -44,6 +44,9 @@ function CreateCourseModal({ onClose, onCreated }: Props) {
             return
         }
 
+        const publishDate = new Date(scheduledPublishDate).toISOString()
+        const endDate = new Date(courseEndDate).toISOString()
+
         const { data, error } = await supabase
             .from('Course')
             .insert([
@@ -52,8 +55,8 @@ function CreateCourseModal({ onClose, onCreated }: Props) {
                     course_code: courseCode,
                     course_description: courseDescription,
                     teacher_id: teacherId,
-                    scheduled_publish_date: scheduledPublishDate,
-                    course_end_date: courseEndDate
+                    scheduled_publish_date: publishDate,
+                    course_end_date: endDate
                 }
             ])
 

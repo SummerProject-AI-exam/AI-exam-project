@@ -88,18 +88,22 @@ function MonitoringDemo({
     }, [])
 
     return (
-        <div style={{ padding: '40px' }} >
+        <div className="exam-monitor" >
             <h1>Exam Monitor</h1>
 
-            <p>
-                window status: {''}
+            <p className="monitor-status">
+                Exam Window: {''}
                 <strong>{windowActive ? 'ACTIVE' : 'INACTIVE'}</strong>
             </p>
             
 
             {/* Traffic Light indicator */}
             <div
-                style={{
+                className={`monitor-indicator ${
+                    warning ? 'inactive' : 'active'
+                }`}
+            />
+                {/*style={{
                     width: '80px',
                     height: '80px',
                     borderRadius: '50%',
@@ -108,13 +112,14 @@ function MonitoringDemo({
                     boxShadow: warning
                         ? '0 0 20px red'
                         : '0 0 20px green'
-                }}
-                ></div>
+                }} 
+                ></div>*/}
 
                 {/* Warning Message */}
                 {warning && (
-                    <div
-                        style={{
+                    <div className="monitor-warning">
+                        
+                        {/*style={{
                             background: 'red',
                             color: 'white',
                             padding: '20px',
@@ -124,13 +129,18 @@ function MonitoringDemo({
                             fontWeight: 'bold',
                             textAlign: 'center'
                         }}
-                    >
-                        Suspecious Activity Detected!
+                    > */}
+                    
+                        <strong>Attention!</strong>
+                        <br />
+                        You left the exam window
+                    
                     </div>
+                    
                 )}
                 {showHistoryWarning && (
-                    <div
-                        style={{
+                    <div className="monitor-history-warning">
+                        {/*style={{
                             background: 'orange',
                             color: 'black',
                             padding: '15px',
@@ -139,8 +149,8 @@ function MonitoringDemo({
                             fontWeight: 'bold',
                             textAlign: 'center'
                         }}
-                    >
-                        Previous suspicious activity detected
+                    > */}
+                        Previous exam window exit detected
                     </div>    
                 )}
             {/* 

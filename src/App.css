@@ -661,3 +661,64 @@ body {
   flex:1;
   min-width: 260px;
 }
+
+/*=============================
+  EXAM MONITOR
+  ============================= */
+
+  .exam-monitor {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  }
+
+  .exam-monitor h1{
+    font-size: 28px;
+    margin-bottom: 15px;
+  }
+
+  .monitor-status {
+    font-size: 15px;
+    margin-bottom: 15px;
+  }
+
+  .monitor-indicator {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 15px auto;
+    transition: all .3s ease;
+  }
+
+  .monitor-indicator.active {
+    background: green;
+    box-shadow: 0 0 20px green;
+  }
+
+  .monitor-indicator.inactive {
+    background: red;
+    box-shadow: 0 0 20px red;
+  }
+
+  .monitor-warning {
+    background: #e53935;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .monitor-history-warning {
+    background: #ffb74d;
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+  }
