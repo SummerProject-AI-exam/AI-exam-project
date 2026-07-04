@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
-import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
+import { useFaceLandmarkerRaw } from "../hooks/useFaceLandmarkerRaw";
 import { useGaze } from "../hooks/useGaze";
 
 export function GazeTestViewer() {
@@ -10,12 +10,25 @@ export function GazeTestViewer() {
     "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN"
   >("CENTER");
 
-  const { isLoaded, results, canvasRef } = useFaceLandmarker(videoRef, {
-    disableDrawing: true,
-  });
+  const { isLoaded, results } = useFaceLandmarkerRaw(videoRef);
 
-  const { direction, isCalibrating, baseline, countdown, startCalibration } =
-    useGaze(results, calibStep);
+  const {
+    direction,
+    isCalibrating,
+    baseline,
+    countdown,
+    startCalibration,
+    calibProgress,
+    debug,
+  } = useGaze(results, calibStep);
+
+  const stepSamplesRef = useRef({
+    CENTER: 0,
+    LEFT: 0,
+    RIGHT: 0,
+    UP: 0,
+    DOWN: 0,
+  });
 
   useEffect(() => {
     startCamera();
@@ -40,7 +53,8 @@ export function GazeTestViewer() {
     const cy = h / 2;
     const len = 80;
 
-    let dx = 0, dy = 0;
+    let dx = 0,
+      dy = 0;
 
     if (direction === "LEFT") dx = -len;
     if (direction === "RIGHT") dx = len;
@@ -50,7 +64,7 @@ export function GazeTestViewer() {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + dx, cy + dy);
-    ctx.strokeStyle = isCalibrating ? "orange" : "red";
+    if (isCalibrating) return;
     ctx.lineWidth = 4;
     ctx.stroke();
   }, [direction, isCalibrating]);
@@ -68,64 +82,103 @@ export function GazeTestViewer() {
 
     timelineStarted.current = true;
 
-    const steps = [
-      { step: "CENTER", delay: 1000 },
-      { step: "LEFT", delay: 2500 },
-      { step: "RIGHT", delay: 4000 },
-      { step: "UP", delay: 5500 },
-      { step: "DOWN", delay: 7000 },
-    ];
+    const DOT_DURATION = 2000;
 
-    steps.forEach(({ step, delay }) => {
-      setTimeout(() => {
-        setCalibStep(step as any);
-      }, delay);
-    });
-  }, [isCalibrating, countdown]);
+    setTimeout(() => {
+      const steps: Array<{
+        step: "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN";
+        delay: number;
+      }> = [
+          { step: "CENTER", delay: DOT_DURATION * 0 },
+          { step: "LEFT", delay: DOT_DURATION * 1 },
+          { step: "RIGHT", delay: DOT_DURATION * 2 },
+          { step: "UP", delay: DOT_DURATION * 3 },
+          { step: "DOWN", delay: DOT_DURATION * 4 },
+        ];
 
-const videoContainerRef = useRef<HTMLDivElement>(null);
+steps.forEach(({ step, delay }) => {
+  setTimeout(() => {
 
-const [dynamicPositions, setDynamicPositions] = useState({
-  CENTER: { top: 0, left: 0 },
-  LEFT: { top: 0, left: 0 },
-  RIGHT: { top: 0, left: 0 },
-  UP: { top: 0, left: 0 },
-  DOWN: { top: 0, left: 0 },
+    const prevStep = calibStep;
+    const prevCount = stepSamplesRef.current[prevStep];
+
+    if (prevCount < 5 && prevStep !== "CENTER") {
+      console.warn(`[CALIB] Not enough samples for ${prevStep}, retrying`);
+      return; 
+    }
+
+    setCalibStep(step);
+    stepSamplesRef.current[step] = 0;
+
+  }, delay);
 });
 
-useEffect(() => {
-  const updateDotPositions = () => {
-    const box = videoContainerRef.current?.getBoundingClientRect();
-    if (!box) return;
+    }, 500);
+  }, [isCalibrating, countdown]);
 
-    setDynamicPositions({
-      CENTER: {
-        top: box.height * 0.50,
-        left: box.width * 0.50,
-      },
-      LEFT: {
-        top: box.height * 0.50,
-        left: box.width * 0.02,
-      },
-      RIGHT: {
-        top: box.height * 0.50,
-        left: box.width * 0.98,
-      },
-      UP: {
-        top: box.height * 0.02,
-        left: box.width * 0.50,
-      },
-      DOWN: {
-        top: box.height * 0.98,
-        left: box.width * 0.50,
-      },
-    });
-  };
+  useEffect(() => {
+    if (!isCalibrating) return;
 
-  updateDotPositions();
-  window.addEventListener("resize", updateDotPositions);
-  return () => window.removeEventListener("resize", updateDotPositions);
-}, []);
+    const step = calibStep;
+    stepSamplesRef.current[step]++;
+
+    const count = stepSamplesRef.current[step];
+
+    if (count % 10 === 0) {
+      console.log(`[CALIB SAMPLE] step=${step} | samples=${count}`);
+    }
+  }, [calibProgress, calibStep, isCalibrating]);
+
+  useEffect(() => {
+    if (!isCalibrating && baseline) {
+      console.log("[CALIB SUMMARY]");
+      console.log(JSON.stringify(stepSamplesRef.current, null, 2));
+    }
+  }, [isCalibrating, baseline]);
+
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  const [dynamicPositions, setDynamicPositions] = useState({
+    CENTER: { top: 0, left: 0 },
+    LEFT: { top: 0, left: 0 },
+    RIGHT: { top: 0, left: 0 },
+    UP: { top: 0, left: 0 },
+    DOWN: { top: 0, left: 0 },
+  });
+
+  useEffect(() => {
+    const updateDotPositions = () => {
+      const box = videoContainerRef.current?.getBoundingClientRect();
+      if (!box) return;
+
+      setDynamicPositions({
+        CENTER: {
+          top: box.height * 0.5,
+          left: box.width * 0.5,
+        },
+        LEFT: {
+          top: box.height * 0.5,
+          left: box.width * 0.02,
+        },
+        RIGHT: {
+          top: box.height * 0.5,
+          left: box.width * 0.98,
+        },
+        UP: {
+          top: box.height * 0.02,
+          left: box.width * 0.5,
+        },
+        DOWN: {
+          top: box.height * 0.98,
+          left: box.width * 0.5,
+        },
+      });
+    };
+
+    updateDotPositions();
+    window.addEventListener("resize", updateDotPositions);
+    return () => window.removeEventListener("resize", updateDotPositions);
+  }, []);
 
   return (
     <div
@@ -155,7 +208,6 @@ useEffect(() => {
         </div>
       )}
 
-
       <div
         ref={videoContainerRef}
         style={{
@@ -170,8 +222,6 @@ useEffect(() => {
           playsInline
           muted
         />
-
-        <canvas ref={canvasRef} style={{ display: "none" }} />
 
         <canvas
           ref={arrowCanvasRef}
@@ -189,27 +239,46 @@ useEffect(() => {
         />
 
         {isCalibrating && (
-          <div
-            style={{
-              position: "absolute",
-              width: 30,
-              height: 30,
-              borderRadius: "50%",
-              background: "red",
-              transform: "translate(-50%, -50%)",
-              top: dynamicPositions[calibStep].top,
-              left: dynamicPositions[calibStep].left,
-              zIndex: 999999,
-              pointerEvents: "none",
-            }}
-          >
+          <>
+            <div
+              style={{
+                position: "absolute",
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                background: "red",
+                transform: "translate(-50%, -50%)",
+                top: dynamicPositions[calibStep].top,
+                left: dynamicPositions[calibStep].left,
+                zIndex: 999999,
+                pointerEvents: "none",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                top: dynamicPositions[calibStep].top + 40,
+                left: dynamicPositions[calibStep].left,
+                transform: "translate(-50%, -50%)",
+                color: "white",
+                fontSize: "16px",
+                fontWeight: "bold",
+                zIndex: 999999,
+                pointerEvents: "none",
+                textShadow: "0 0 4px black",
+              }}
+            >
+              {calibProgress}
+            </div>
+
             {countdown !== null && (
               <div
                 style={{
                   position: "absolute",
-                  top: -30,
-                  left: "50%",
-                  transform: "translateX(-50%)",
+                  top: dynamicPositions[calibStep].top - 40,
+                  left: dynamicPositions[calibStep].left,
+                  transform: "translate(-50%, -50%)",
                   color: "white",
                   fontSize: "0.9rem",
                 }}
@@ -217,7 +286,7 @@ useEffect(() => {
                 {countdown}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
@@ -236,6 +305,25 @@ useEffect(() => {
         Gaze: {direction}
         {isCalibrating && " (calibrating)"}
         {baseline && !isCalibrating && " (calibrated)"}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          left: "150px",
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "6px 10px",
+          borderRadius: "4px",
+          fontSize: "0.75rem",
+          lineHeight: "1.2rem",
+          zIndex: 20,
+        }}
+      >
+        <div>FPS: {debug.fps.toFixed(1)}</div>
+        <div>Throttle: {debug.throttle.toFixed(1)} ms</div>
+        <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
       </div>
 
       <button

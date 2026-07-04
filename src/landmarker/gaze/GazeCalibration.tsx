@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
-import { useFaceLandmarker } from "../hooks/useFaceLandmarker"; 
+import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 import { extractLandmarkFeatures } from "./extractLandmarkFeatures";
 import { computeGazeVector } from "./computeGazeVector";
 
@@ -87,22 +87,22 @@ export function GazeCalibration({ onDone }: { onDone: (model: any) => void }) {
   function validateStep(step: CalibrationStep, samples: { x: number; y: number }[]) {
     if (step === "DONE") return;
 
+    if (samples.length < 5) {
+      console.warn("Not enough samples, retrying step");
+      return restartStep();
+    }
+
     const avgX = samples.reduce((a, b) => a + b.x, 0) / samples.length;
     const avgY = samples.reduce((a, b) => a + b.y, 0) / samples.length;
 
-    const magnitude = Math.sqrt(avgX * avgX + avgY * avgY);
+    console.log("STEP AVERAGE", step, {
+      avgX,
+      avgY,
+      count: samples.length,
+    });
 
-    if (magnitude < 0.002) {
-      restartStep();
-      return;
-    }
+    calibrationData.current[step] = { x: avgX, y: avgY };
 
-    if (step === "LEFT" && avgX > 0) return restartStep();
-    if (step === "RIGHT" && avgX < 0) return restartStep();
-    if (step === "UP" && avgY > 0) return restartStep();
-    if (step === "DOWN" && avgY < 0) return restartStep();
-
-    storeCalibrationSample(step, avgX, avgY);
     goToNextStep();
   }
 
@@ -192,11 +192,11 @@ export function GazeCalibration({ onDone }: { onDone: (model: any) => void }) {
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <video
         ref={videoRef}
-        style={{ 
-          width: "100%", 
+        style={{
+          width: "100%",
           transform: "scaleX(-1)",
           zIndex: 1,
-  position: "relative" 
+          position: "relative"
         }}
       />
 
