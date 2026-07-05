@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase';
 import StudentNavbar from "../components/StudentNavbar";
+import { formatDuration } from "../utils/formatDuration";
 
 
 function StudentCourseDetailsPage() {
@@ -147,9 +148,8 @@ function StudentCourseDetailsPage() {
                             <p>
                                 Duration:
                                 {' '}
-                                {exam.duration_time}
-                                {' '}
-                                minutes
+                                {formatDuration(exam.duration_time)}
+                               
                             </p>
                         </div>
                     ))
