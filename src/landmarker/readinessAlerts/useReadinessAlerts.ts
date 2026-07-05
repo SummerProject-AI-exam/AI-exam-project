@@ -1,12 +1,8 @@
 import type { ReadinessAlertType } from "./alertTypesReadiness";
 
-import { analyzeFacePresence } from "../analysis/analyzeFacePresence";
-import { useFaceStability } from "../analysis/useFaceStability";
-import { analyzeCalibration } from "../analysis/useCalibration";
-
 type ReadinessInput = {
   videoRef: React.RefObject<HTMLVideoElement>;
-  faceLandmarks: any[];
+  faceLandmarks: any[] | null;
   faceCount: number;
 
   cameraReady: boolean;
@@ -20,6 +16,7 @@ type ReadinessInput = {
 export function useReadinessAlerts(input: ReadinessInput) {
   const {
     faceLandmarks,
+    faceCount,
     cameraReady,
     cameraBlocked,
     cameraOff,
@@ -29,28 +26,34 @@ export function useReadinessAlerts(input: ReadinessInput) {
 
   const alerts: ReadinessAlertType[] = [];
 
+  // --- CAMERA STATUS ---
   if (cameraOff) alerts.push("CAMERA_OFF");
   if (!cameraOff && !cameraReady) alerts.push("CAMERA_PERMISSION_DENIED");
   if (cameraBlocked) alerts.push("CAMERA_BLOCKED");
+
+  // --- FRAME STATUS ---
   if (frameFrozen) alerts.push("FRAME_FROZEN");
   if (lighting !== "good") alerts.push("LOW_LIGHTING");
 
-  const face = analyzeFacePresence(faceLandmarks);
+  // --- FACE PRESENCE ---
+  const faceDetected = faceCount > 0 && faceLandmarks && faceLandmarks.length > 0;
+  if (!faceDetected) alerts.push("NO_FACE");
 
-  if (!face.faceDetected) alerts.push("NO_FACE");
+  // --- FACE QUALITY ---
+  // Simple stability check: landmarks must not be null and must have enough points
+  const hasEnoughPoints =
+    faceDetected && faceLandmarks[0] && faceLandmarks[0].length > 20;
 
-  if (face.faceDetected && !face.stable) alerts.push("FRAME_QUALITY_LOW");
+  if (faceDetected && !hasEnoughPoints) {
+    alerts.push("FRAME_QUALITY_LOW");
+  }
 
-  const faceUnstable = useFaceStability(faceLandmarks);
-  if (faceUnstable) alerts.push("FRAME_QUALITY_LOW");
+  // --- CALIBRATION ---
+  // Calibration is now simple: face must be detected + stable enough
+  const calibrated = faceDetected && hasEnoughPoints;
+  if (!calibrated) alerts.push("CALIBRATION_NOT_READY");
 
-  const calibration = analyzeCalibration({
-    faceDetected: face.faceDetected,
-    stable: face.stable,
-  });
-
-  if (!calibration.calibrated) alerts.push("CALIBRATION_NOT_READY");
-
+  // --- FINAL STATE ---
   const TEMPORARY_ALERTS = [
     "NO_FACE",
     "CAMERA_BLOCKED",

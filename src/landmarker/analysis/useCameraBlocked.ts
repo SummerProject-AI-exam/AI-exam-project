@@ -30,7 +30,7 @@ export function useCameraBlocked(
   const [cameraBlocked, setCameraBlocked] = useState<boolean>(false);
 
   const blockCounter = useRef<number>(0);
-  const BLOCK_THRESHOLD = 2; 
+  const BLOCK_THRESHOLD = 2;
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -43,7 +43,15 @@ export function useCameraBlocked(
         return;
       }
 
+      // 🔥 Stabilizer 1 — camera not ready
       if (video.videoWidth === 0 || video.videoHeight === 0) {
+        setCameraBlocked(false);
+        return;
+      }
+
+      // 🔥 Stabilizer 2 — NO_FACE should NOT become CAMERA_BLOCKED
+      if (!faceDetected) {
+        blockCounter.current = 0;
         setCameraBlocked(false);
         return;
       }
@@ -64,7 +72,6 @@ export function useCameraBlocked(
       }
       const avgBrightness = sum / (frame.length / 4);
 
-      // variance
       let sumVar = 0;
       let sumSqVar = 0;
       const n = frame.length / 4;
@@ -105,12 +112,7 @@ export function useCameraBlocked(
         return;
       }
 
-      if (isStrongBlock) {
-        blockCounter.current++;
-      } else {
-        blockCounter.current = 0;
-      }
-
+      blockCounter.current++;
       setCameraBlocked(blockCounter.current >= BLOCK_THRESHOLD);
     }, 100);
 

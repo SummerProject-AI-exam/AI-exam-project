@@ -9,7 +9,7 @@ export function useFaceLandmarkerRaw(
   const [cameraReady, setCameraReady] = useState(false);
 
   const lastTimeRef = useRef(0);
-  const THROTTLE_MS = 33; 
+  const THROTTLE_MS = 33; // ~30 FPS
 
   useEffect(() => {
     let landmarker: FaceLandmarker | null = null;
@@ -27,7 +27,7 @@ export function useFaceLandmarkerRaw(
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
         },
         runningMode: "VIDEO",
-        numFaces: 1,
+        numFaces: 2, // IMPORTANT: monitoring expects multi-face support
       });
 
       setIsLoaded(true);
@@ -36,24 +36,29 @@ export function useFaceLandmarkerRaw(
         if (!active) return;
 
         const video = videoRef.current;
-
         animationFrameId = requestAnimationFrame(render);
 
         if (!video || !landmarker) return;
 
         if (!cameraReady) setCameraReady(true);
 
+        // FPS throttle AFTER camera readiness
         if (now - lastTimeRef.current < THROTTLE_MS) {
-          return; 
+          return;
         }
         lastTimeRef.current = now;
 
+        // Camera not ready
         if (video.videoWidth === 0 || video.videoHeight === 0) {
           setResults(null);
-        } else {
-          const detection = landmarker.detectForVideo(video, now);
-          setResults(detection);
+          return;
         }
+
+        // RAW detection (no filtering, no shaping)
+        const detection = landmarker.detectForVideo(video, now);
+
+        // Monitoring expects RAW detection object
+        setResults(detection);
       };
 
       animationFrameId = requestAnimationFrame(render);
@@ -66,7 +71,7 @@ export function useFaceLandmarkerRaw(
       cancelAnimationFrame(animationFrameId);
       landmarker?.close();
     };
-  }, []); 
+  }, []);
 
   return {
     results,

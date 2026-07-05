@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
-import { useFaceLandmarkerRaw } from "../hooks/useFaceLandmarkerRaw";
 import { useGaze } from "../hooks/useGaze";
+import { useGazeAlerts } from "../gazeAlerts/useGazeAlerts";
+import { useStableAlert } from "../alerts/useStableAlerts";
+import { useStableGazeAlert } from "../hooks/useStableGazeAlert";
+import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 
 export function GazeTestViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
@@ -10,7 +13,7 @@ export function GazeTestViewer() {
     "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN"
   >("CENTER");
 
-  const { isLoaded, results } = useFaceLandmarkerRaw(videoRef);
+  const { isLoaded, results } = useFaceLandmarker(videoRef);
 
   const {
     direction,
@@ -21,6 +24,10 @@ export function GazeTestViewer() {
     calibProgress,
     debug,
   } = useGaze(results, calibStep);
+
+  const rawGazeAlert = useGazeAlerts(direction, debug);
+  const stableGazeAlert = useStableGazeAlert(rawGazeAlert, 300);
+
 
   const stepSamplesRef = useRef({
     CENTER: 0,
@@ -96,22 +103,22 @@ export function GazeTestViewer() {
           { step: "DOWN", delay: DOT_DURATION * 4 },
         ];
 
-steps.forEach(({ step, delay }) => {
-  setTimeout(() => {
+      steps.forEach(({ step, delay }) => {
+        setTimeout(() => {
 
-    const prevStep = calibStep;
-    const prevCount = stepSamplesRef.current[prevStep];
+          const prevStep = calibStep;
+          const prevCount = stepSamplesRef.current[prevStep];
 
-    if (prevCount < 5 && prevStep !== "CENTER") {
-      console.warn(`[CALIB] Not enough samples for ${prevStep}, retrying`);
-      return; 
-    }
+          if (prevCount < 5 && prevStep !== "CENTER") {
+            console.warn(`[CALIB] Not enough samples for ${prevStep}, retrying`);
+            return;
+          }
 
-    setCalibStep(step);
-    stepSamplesRef.current[step] = 0;
+          setCalibStep(step);
+          stepSamplesRef.current[step] = 0;
 
-  }, delay);
-});
+        }, delay);
+      });
 
     }, 500);
   }, [isCalibrating, countdown]);
@@ -180,163 +187,189 @@ steps.forEach(({ step, delay }) => {
     return () => window.removeEventListener("resize", updateDotPositions);
   }, []);
 
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        maxWidth: "1200px",
-        height: "80vh",
-        margin: "0 auto",
-      }}
-    >
-      {!isLoaded && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.2rem",
-            zIndex: 10,
-          }}
-        >
-          Loading model…
-        </div>
-      )}
-
+return (
+  <div
+    style={{
+      position: "relative",
+      width: "100%",
+      maxWidth: "1200px",
+      height: "80vh",
+      margin: "0 auto",
+    }}
+  >
+    {!isLoaded && (
       <div
-        ref={videoContainerRef}
         style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "1.2rem",
+          zIndex: 10000,
         }}
       >
-        <video
-          ref={videoRef}
-          style={{ width: "100%", height: "100%", transform: "scaleX(-1)" }}
-          playsInline
-          muted
-        />
+        Loading model…
+      </div>
+    )}
 
-        <canvas
-          ref={arrowCanvasRef}
-          width={640}
-          height={480}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-            transform: "scaleX(-1)",
-          }}
-        />
+    {/* VIDEO AREA */}
+    <div
+      ref={videoContainerRef}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 1,
+        isolation: "isolate",
+      }}
+    >
+      <video
+        ref={videoRef}
+        style={{ width: "100%", height: "100%", transform: "scaleX(-1)" }}
+        playsInline
+        muted
+      />
 
-        {isCalibrating && (
-          <>
+      <canvas
+        ref={arrowCanvasRef}
+        width={640}
+        height={480}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          transform: "scaleX(-1)",
+        }}
+      />
+
+      {isCalibrating && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              width: 30,
+              height: 30,
+              borderRadius: "50%",
+              background: "red",
+              transform: "translate(-50%, -50%)",
+              top: dynamicPositions[calibStep].top,
+              left: dynamicPositions[calibStep].left,
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              top: dynamicPositions[calibStep].top + 40,
+              left: dynamicPositions[calibStep].left,
+              transform: "translate(-50%, -50%)",
+              color: "white",
+              fontSize: "16px",
+              fontWeight: "bold",
+              zIndex: 2,
+              pointerEvents: "none",
+              textShadow: "0 0 4px black",
+            }}
+          >
+            {calibProgress}
+          </div>
+
+          {countdown !== null && (
             <div
               style={{
                 position: "absolute",
-                width: 30,
-                height: 30,
-                borderRadius: "50%",
-                background: "red",
-                transform: "translate(-50%, -50%)",
-                top: dynamicPositions[calibStep].top,
-                left: dynamicPositions[calibStep].left,
-                zIndex: 999999,
-                pointerEvents: "none",
-              }}
-            />
-
-            <div
-              style={{
-                position: "absolute",
-                top: dynamicPositions[calibStep].top + 40,
+                top: dynamicPositions[calibStep].top - 40,
                 left: dynamicPositions[calibStep].left,
                 transform: "translate(-50%, -50%)",
                 color: "white",
-                fontSize: "16px",
-                fontWeight: "bold",
-                zIndex: 999999,
-                pointerEvents: "none",
-                textShadow: "0 0 4px black",
+                fontSize: "0.9rem",
+                zIndex: 2,
               }}
             >
-              {calibProgress}
+              {countdown}
             </div>
-
-            {countdown !== null && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: dynamicPositions[calibStep].top - 40,
-                  left: dynamicPositions[calibStep].left,
-                  transform: "translate(-50%, -50%)",
-                  color: "white",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {countdown}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          left: "10px",
-          background: "rgba(0,0,0,0.6)",
-          color: "white",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "0.8rem",
-        }}
-      >
-        Gaze: {direction}
-        {isCalibrating && " (calibrating)"}
-        {baseline && !isCalibrating && " (calibrated)"}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          left: "150px",
-          background: "rgba(0,0,0,0.6)",
-          color: "white",
-          padding: "6px 10px",
-          borderRadius: "4px",
-          fontSize: "0.75rem",
-          lineHeight: "1.2rem",
-          zIndex: 20,
-        }}
-      >
-        <div>FPS: {debug.fps.toFixed(1)}</div>
-        <div>Throttle: {debug.throttle.toFixed(1)} ms</div>
-        <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
-      </div>
-
-      <button
-        onClick={startCalibration}
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          right: "10px",
-          zIndex: 20,
-        }}
-      >
-        Calibrate
-      </button>
+          )}
+        </>
+      )}
     </div>
-  );
+
+    {/* DEBUG BOXES ABOVE VIDEO */}
+    <div
+      style={{
+        position: "absolute",
+        bottom: "10px",
+        left: "10px",
+        background: "rgba(0,0,0,0.6)",
+        color: "white",
+        padding: "4px 8px",
+        borderRadius: "4px",
+        fontSize: "0.8rem",
+        zIndex: 9999, 
+      }}
+    >
+      Gaze: {direction}
+      {isCalibrating && " (calibrating)"}
+      {baseline && !isCalibrating && " (calibrated)"}
+    </div>
+
+    <div
+      style={{
+        position: "absolute",
+        bottom: "10px",
+        left: "150px",
+        background: "rgba(0,0,0,0.6)",
+        color: "white",
+        padding: "6px 10px",
+        borderRadius: "4px",
+        fontSize: "0.75rem",
+        lineHeight: "1.2rem",
+        zIndex: 9999,
+      }}
+    >
+      <div>FPS: {debug.fps.toFixed(1)}</div>
+      <div>Throttle: {debug.throttle.toFixed(1)} ms</div>
+      <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
+    </div>
+
+    <div
+      style={{
+        position: "absolute",
+        bottom: "10px",
+        left: "300px",
+        background: "rgba(0,0,0,0.6)",
+        color: "white",
+        padding: "6px 10px",
+        borderRadius: "4px",
+        fontSize: "0.75rem",
+        lineHeight: "1.2rem",
+        zIndex: 9999, 
+      }}
+    >
+      <div>Raw gaze alert: {rawGazeAlert ?? "none"}</div>
+      <div>Stable gaze alert: {stableGazeAlert?.type ?? "none"}</div>
+    </div>
+
+    <button
+      onClick={startCalibration}
+      style={{
+        position: "absolute",
+        bottom: "10px",
+        right: "10px",
+        zIndex: 9999, 
+      }}
+    >
+      Calibrate
+    </button>
+  </div>
+);
 }
