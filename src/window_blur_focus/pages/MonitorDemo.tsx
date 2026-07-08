@@ -3,7 +3,7 @@ import { saveFraudEvent } from '../services/blurEventApi'
 
 
 type Props = {
-    sessionId: string
+    sessionId?: string
 }
 
 function MonitoringDemo({

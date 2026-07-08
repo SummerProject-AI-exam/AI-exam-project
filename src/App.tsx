@@ -17,7 +17,7 @@ import StudentCoursesPage from './UI/pages/StudentCoursesPage';
 import StudentCourseDetailsPage from './UI/pages/StudentCourseDetailsPage';
 import StudentAssignmentDetailsPage from './UI/pages/StudentAssignmentDetailsPage';
 import StudentExamDetailsPage from './UI/pages/StudentExamDetailsPage';
-
+import StudentResultsPage from './UI/pages/StudentResultsPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
@@ -84,7 +84,8 @@ function App() {
         <Route path="/student/courses" element={<StudentCoursesPage />} />
         <Route path="/student/course/:id" element={<StudentCourseDetailsPage />} />
         <Route path="/student/assignment/:id" element={<StudentAssignmentDetailsPage />} />  
-        <Route path="/student/exam/:id" element={<StudentExamDetailsPage />} />  
+        <Route path="/student/exam/:id" element={<StudentExamDetailsPage />} /> 
+        <Route path="/student/results"  element={<StudentResultsPage />} />
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo />} />
