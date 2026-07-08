@@ -4,7 +4,7 @@ function ExamPortal() {
     const userInsideSEB = navigator.userAgent.includes('SEB');
 
     const [examSubmitted, setExamSubmitted] = useState(false);
-    const [answer, setAnswer] = useState('');
+    const [answer, setAnswer] = useState(() => localStorage.getItem('exam_answer') || '');
     const [secondsLeft, setSecondsLeft] = useState(600);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -22,6 +22,14 @@ function ExamPortal() {
             window.removeEventListener('offline', handleOffline);
         };
     }, []);
+
+    useEffect(() => {
+        if (!examSubmitted) {
+            localStorage.setItem('exam_answer', answer);
+        } else {
+            localStorage.removeItem('exam_answer');
+        }
+    }, [answer, examSubmitted]);
 
     //Timer to simulate a real exam situation and a character counter for the text area
     useEffect(() => {
