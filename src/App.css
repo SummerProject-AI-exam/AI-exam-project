@@ -759,3 +759,21 @@ body {
   .results-table tr:hover{
     background: #fafafa;
   }
+
+  .status-submitted {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #dcfce7;
+    color: #15803d;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .status-not-attempted {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 20px;
+    font-weight: 600;
+  }

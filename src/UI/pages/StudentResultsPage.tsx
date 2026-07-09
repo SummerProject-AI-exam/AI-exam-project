@@ -219,13 +219,19 @@ function StudentResultsPage() {
                                                 <td>
                                                     {result.score !== null
                                                         ? `${result.score} / ${result.totalMarks}`
-                                                        : "-"}
+                                                        : `- / ${result.totalMarks}`}
                                                 </td>
 
                                                 <td>
-                                                    {result.status === "Submitted"
-                                                        ? "Submitted"
-                                                        : "Not Attempted"}
+                                                    <span
+                                                        className={
+                                                            result.status === "Submitted"
+                                                                ? "status-submitted"
+                                                                : "status-not-attempted"
+                                                        }
+                                                    >
+                                                        {result.status}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         ))}
