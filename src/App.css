@@ -777,3 +777,27 @@ body {
     border-radius: 20px;
     font-weight: 600;
   }
+
+  /*=============================
+  TEACHER REPORT
+  ============================= */
+
+  .reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+
+  }
+  .report-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    transition: 0.2s;
+  }
+
+  .report-card:hover {
+    transform: translateY(-4px);
+  }
