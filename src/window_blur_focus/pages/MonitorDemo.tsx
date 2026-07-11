@@ -3,7 +3,7 @@ import { saveFraudEvent } from '../services/blurEventApi'
 
 
 type Props = {
-    sessionId: string
+    sessionId?: string
 }
 
 function MonitoringDemo({
@@ -28,46 +28,51 @@ function MonitoringDemo({
 
         const handleBlur = async () => {
 
-            if (!sessionId) return
+            //if (!sessionId) return
             //console.log("BLUR FIRED")
             setWindowActive(false)
             setWarning(true)
             setShowHistoryWarning(false)
             //addEvent('Window lost focus')
 
-            await saveFraudEvent(
-                sessionId,
-                'WINDOW_BLUR',
-                0.9,
-                {
-                    source: 'window',
-                    action: 'blur'
-                }
-            )
+            if (sessionId) {
+                await saveFraudEvent(
+                    sessionId,
+                    'WINDOW_BLUR',
+                    0.9,
+                    {
+                        source: 'window',
+                        action: 'blur'
+                    }
+                )
+            }
         }
 
         const handleFocus = async () => {
 
-            if (!sessionId) return
+            //if (!sessionId) return
             //console.log("FOCUS FIRED")
             setWindowActive(true)
             setWarning(true)
             setShowHistoryWarning(true)
             //addEvent('Window regained focus')
 
-            await saveFraudEvent(
-                sessionId,
-                'WINDOW_FOCUS',
-                0.5,
-                {
-                    source: 'window',
-                    action: 'focus'
-                }
-            )
+
+            if (sessionId) {
+                await saveFraudEvent(
+                    sessionId,
+                    'WINDOW_FOCUS',
+                    0.5,
+                    {
+                        source: 'window',
+                        action: 'focus'
+                    }
+                )
+        }
 
             //keep red warning for 3 seconds
             timer = setTimeout(() => {
-                console.log("TIMER FIRED")
+                //console.log("TIMER FIRED")
                 setWarning(false)
             }, 3000)
         }
@@ -85,7 +90,7 @@ function MonitoringDemo({
             if (timer) clearTimeout(timer)
             
         }
-    }, [])
+    }, [sessionId])
 
     return (
         <div className="exam-monitor" >
