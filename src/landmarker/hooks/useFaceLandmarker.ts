@@ -5,6 +5,7 @@ import { drawLandmarks } from "../utils/drawLandmarks";
 type FaceLandmarkerOptions = {
   fps?: number;
   maxDurationMs?: number;
+  debug?: boolean;
 };
 
 export function useFaceLandmarker(
@@ -17,10 +18,16 @@ export function useFaceLandmarker(
   const [cameraReady, setCameraReady] = useState(false);
 
   const lastGoodFrameRef = useRef<any>(null);
-
   const startedRef = useRef(false);
 
+  let lastFilter = 0;
+
   function cheatingSafeFilter(detection: any, timestamp: number) {
+    if (timestamp - lastFilter < 50) {
+      return lastGoodFrameRef.current;
+    }
+    lastFilter = timestamp;
+
     const lastGood = lastGoodFrameRef.current;
 
     if (!detection || !detection.faceLandmarks || detection.faceLandmarks.length === 0) {
@@ -29,16 +36,14 @@ export function useFaceLandmarker(
 
     const landmarks = detection.faceLandmarks[0];
 
-    const bbox = computeBoundingBox(landmarks);
+    const zeroPoints = landmarks.filter((pt: any) => pt.x === 0 && pt.y === 0).length;
+    if (zeroPoints > 10) {
+      return lastGood;
+    }
 
     if (!lastGood) {
       lastGoodFrameRef.current = detection;
       return detection;
-    }
-
-    const zeroPoints = landmarks.filter((pt: any) => pt.x === 0 && pt.y === 0).length;
-    if (zeroPoints > 10) {
-      return lastGood;
     }
 
     const movement = computeMovement(lastGood, detection);
@@ -51,7 +56,6 @@ export function useFaceLandmarker(
   }
 
   useEffect(() => {
-
     if (!videoRef || !videoRef.current) return;
     if (startedRef.current) return;
     startedRef.current = true;
@@ -60,10 +64,11 @@ export function useFaceLandmarker(
     let animationFrameId: number;
     let stopTimeout: number | undefined;
 
-    const fps = options?.fps ?? 30;
+    const fps = options?.fps ?? 15; // ❄️ cooler default
     const maxDurationMs = options?.maxDurationMs;
     const frameInterval = 1000 / fps;
     let lastTime = 0;
+    let lastResultUpdate = 0;
 
     async function init() {
       const vision = await FilesetResolver.forVisionTasks(
@@ -96,22 +101,33 @@ export function useFaceLandmarker(
         if (!cameraReady) setCameraReady(true);
         if (!ctx) return;
 
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-          setResults(null);
+        if (video.readyState < 2) {
           return;
         }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          return;
+        }
+
+        if (canvas.width !== video.videoWidth) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
 
         const detection = landmarker.detectForVideo(video, now);
+        //console.log("RAW LANDMARKER OUTPUT:", detection);
+
         const safeFrame = cheatingSafeFilter(detection, now);
         const frameToUse = safeFrame ?? detection;
 
-        setResults(frameToUse);
+        if (now - lastResultUpdate > frameInterval) {
+          setResults({ ...frameToUse });
+          lastResultUpdate = now;
+        }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (frameToUse?.faceLandmarks?.length > 0) {
+
+        if (options?.debug && frameToUse?.faceLandmarks?.length > 0) {
           drawLandmarks(
             ctx,
             frameToUse.faceLandmarks[0],
@@ -138,23 +154,9 @@ export function useFaceLandmarker(
       cancelAnimationFrame(animationFrameId);
       landmarker?.close();
     };
-  }, [videoRef]); 
+  }, [videoRef, options?.fps, options?.debug, options?.maxDurationMs]);
 
   return { canvasRef, isLoaded, results, cameraReady };
-}
-
-// ⭐ NEW: bounding box computation
-function computeBoundingBox(landmarks: any[]) {
-  let minX = 1, minY = 1, maxX = 0, maxY = 0;
-
-  for (const pt of landmarks) {
-    if (pt.x < minX) minX = pt.x;
-    if (pt.y < minY) minY = pt.y;
-    if (pt.x > maxX) maxX = pt.x;
-    if (pt.y > maxY) maxY = pt.y;
-  }
-
-  return { xMin: minX, yMin: minY, xMax: maxX, yMax: maxY };
 }
 
 function computeMovement(prev: any, curr: any) {

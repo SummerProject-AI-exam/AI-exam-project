@@ -3,12 +3,29 @@ import { useRef, useCallback } from "react";
 export function useWebcam() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  //  Start webcam and wait for it to play
   const startCamera = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: "user"
+      }
+    });
+
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+
+      await new Promise((resolve) => {
+        videoRef.current!.onloadedmetadata = () => resolve(true);
+      });
+
+      // decoding starts
       await videoRef.current.play();
+
+      // Readiness diagnostic
+      console.log("readyState:", videoRef.current.readyState);
+      console.log("videoWidth:", videoRef.current.videoWidth);
+      console.log("videoHeight:", videoRef.current.videoHeight);
     }
   }, []);
 

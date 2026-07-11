@@ -12,18 +12,13 @@ import AssignmentPage from './UI/pages/AssignmentPage';
 import AssignmentDetailsPage from './UI/pages/AssignmentDetailsPage';
 import ExamPage from './UI/pages/ExamPage';
 import ExamDetailsPage from './UI/pages/ExamDetailsPage';
-import StudentAvailableCoursesPage from './UI/pages/StudentAvailableCoursesPage';
-import StudentCoursesPage from './UI/pages/StudentCoursesPage';
-import StudentCourseDetailsPage from './UI/pages/StudentCourseDetailsPage';
-import StudentAssignmentDetailsPage from './UI/pages/StudentAssignmentDetailsPage';
-import StudentExamDetailsPage from './UI/pages/StudentExamDetailsPage';
-
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
+import GazeTestPage from './pages/GazeTest';
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -80,14 +75,10 @@ function App() {
         <Route path="/teacher/course/:id/exams" element={<ExamPage />} />
         <Route path="/teacher/exam/:id" element={<ExamDetailsPage />} />
         <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/student/available-courses" element={<StudentAvailableCoursesPage />} />
-        <Route path="/student/courses" element={<StudentCoursesPage />} />
-        <Route path="/student/course/:id" element={<StudentCourseDetailsPage />} />
-        <Route path="/student/assignment/:id" element={<StudentAssignmentDetailsPage />} />  
-        <Route path="/student/exam/:id" element={<StudentExamDetailsPage />} />  
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
-        <Route path="/focus-monitor" element={<MonitoringDemo />} />
+        <Route path="/focus-monitor" element={<MonitoringDemo sessionId="" />} />
+        <Route path="/gaze-test" element={<GazeTestPage />} />
       </Routes>
     </BrowserRouter>
   );
