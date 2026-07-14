@@ -1,25 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { extractLandmarkFeatures } from "../gaze/extractLandmarkFeatures";
-import { computeGazeVector } from "../gaze/computeGazeVector";
 import { smoothVector } from "../gaze/smoothVector";
+import { computeFeatureVector } from "../gaze/computeFeatureVector";
 
-export function useGaze(
-  results: any,
-  calibStep: "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN"
-) {
-  const [direction, setDirection] = useState("CENTER");
+type CalibrationState =
+  | "IDLE"
+  | "COUNTDOWN"
+  | "WAITING_FOR_FIXATION"
+  | "COLLECTING"
+  | "COMPLETED"
+  | "ABORTED";
+
+export function useGaze(results: any) {
   const [baseline, setBaseline] = useState<{ x: number; y: number } | null>(null);
-  const [isCalibrating, setIsCalibrating] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
-
-  const [profile, setProfile] = useState<{
-    hCenter: number;
-    hRange: number;
-    vCenter: number;
-    vRange: number;
-  } | null>(null);
-
-  const [calibProgress, setCalibProgress] = useState<string>("");
+  const [calibrationState, setCalibrationState] =
+    useState<CalibrationState>("IDLE");
 
   const buffer = useRef<{ x: number; y: number }[]>([]);
   const prev = useRef({ x: 0, y: 0, valid: false });
@@ -27,36 +23,51 @@ export function useGaze(
 
   const lastProcessTime = useRef(0);
 
-  const BASE_CALIB_RATE = 1000 / 30;
-  const BASE_NORMAL_RATE = 1000 / 15;
-
+  const BASE_CALIB_RATE = 1000 / 6;
+  const BASE_NORMAL_RATE = 1000 / 5;
   const dynamicRate = useRef(BASE_NORMAL_RATE);
 
-  const centerSamples = useRef<{ x: number; y: number }[]>([]);
-  const leftSamples = useRef<{ x: number; y: number }[]>([]);
-  const rightSamples = useRef<{ x: number; y: number }[]>([]);
-  const upSamples = useRef<{ x: number; y: number }[]>([]);
-  const downSamples = useRef<{ x: number; y: number }[]>([]);
+  const baselineBuffer = useRef<{ x: number; y: number }[]>([]);
+  const currentCountRef = useRef(0);
 
   const debug = useRef({
     fps: 0,
     throttle: 0,
     detectionTime: 0,
+    studentLooking: false,
   });
 
-  // COUNTDOWN
+  const stabilityBuffer = useRef<{ x: number; y: number }[]>([]);
+  const notLookingTimer = useRef(0);
+
+  const variance = (arr: number[]) => {
+    if (arr.length === 0) return 0;
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+    return arr.reduce((a, b) => a + (b - mean) ** 2, 0) / arr.length;
+  };
+
+  const spread = (arr: number[]) => {
+    if (arr.length === 0) return Infinity;
+    return Math.max(...arr) - Math.min(...arr);
+  };
+
+  useEffect(() => {
+    stabilityBuffer.current = [];
+    notLookingTimer.current = 0;
+  }, []);
+
   useEffect(() => {
     if (countdown === null) return;
 
     if (countdown === 0) {
-      centerSamples.current = [];
-      leftSamples.current = [];
-      rightSamples.current = [];
-      upSamples.current = [];
-      downSamples.current = [];
+      baselineBuffer.current = [];
+      setBaseline(null);
 
-      setIsCalibrating(true);
-      setCalibProgress("Starting calibration");
+      stabilityBuffer.current = [];
+      notLookingTimer.current = 0;
+      currentCountRef.current = 0;
+
+      setCalibrationState("WAITING_FOR_FIXATION");
       setCountdown(null);
       return;
     }
@@ -66,144 +77,231 @@ export function useGaze(
   }, [countdown]);
 
   useEffect(() => {
+    const state = calibrationState as CalibrationState;
 
-    if (!results?.faceLandmarks?.length) return;
+    // ⭐ NEW: Do NOT abort before calibration actually starts
+    if (state !== "WAITING_FOR_FIXATION" && state !== "COLLECTING") {
+      return;
+    }
+
+    // --- STRICT ABORT: NO FACE DETECTED ---
+    if (!results?.faceLandmarks?.length) {
+      notLookingTimer.current += dynamicRate.current;
+      if (notLookingTimer.current > 2000) {
+        console.log("ABORT: no face detected");
+        setCalibrationState("ABORTED");
+        baselineBuffer.current = [];
+        setBaseline(null);
+        notLookingTimer.current = 0;
+      }
+      return;
+    }
 
     const now = performance.now();
     if (now - lastProcessTime.current < dynamicRate.current) return;
+    const delta = now - lastProcessTime.current;
     lastProcessTime.current = now;
+
+    debug.current.fps = 1000 / delta;
+    debug.current.throttle = dynamicRate.current;
 
     const start = performance.now();
 
     const features = extractLandmarkFeatures(results);
-    const raw = computeGazeVector(features);
-    if (!raw.valid) return;
+    const raw = computeFeatureVector(features);
+    if (!raw.valid) {
+      notLookingTimer.current += dynamicRate.current;
+      if (notLookingTimer.current > 2000) {
+        console.log("ABORT: raw gaze invalid");
+        setCalibrationState("ABORTED");
+        baselineBuffer.current = [];
+        setBaseline(null);
+        notLookingTimer.current = 0;
+      }
+      return;
+    }
 
     const end = performance.now();
     debug.current.detectionTime = end - start;
 
-    dynamicRate.current = isCalibrating
-      ? BASE_CALIB_RATE
-      : BASE_NORMAL_RATE;
+    const isCalibratingPhase =
+      state === "WAITING_FOR_FIXATION" || state === "COLLECTING";
+
+    dynamicRate.current = isCalibratingPhase ? BASE_CALIB_RATE : BASE_NORMAL_RATE;
 
     smoothVector(prev.current, raw, smoothed.current, 0.25);
     prev.current = { ...smoothed.current };
 
     buffer.current.push({ x: smoothed.current.x, y: smoothed.current.y });
-    if (buffer.current.length > 3) buffer.current.shift();
+    if (buffer.current.length > 2) buffer.current.shift();
 
-    const avgX = buffer.current.reduce((a, b) => a + b.x, 0) / buffer.current.length;
-    const avgY = buffer.current.reduce((a, b) => a + b.y, 0) / buffer.current.length;
+    const avgX =
+      buffer.current.reduce((a, b) => a + b.x, 0) / buffer.current.length;
+    const avgY =
+      buffer.current.reduce((a, b) => a + b.y, 0) / buffer.current.length;
 
-    smoothed.current.x = avgX;
-    smoothed.current.y = avgY;
+    const normX = Math.max(-1, Math.min(1, avgX));
+    const normY = Math.max(-1, Math.min(1, avgY));
 
-    // --- CALIBRATION ---
+    stabilityBuffer.current.push({ x: normX, y: normY });
+    if (stabilityBuffer.current.length > 5) {
+      stabilityBuffer.current.shift();
+    }
+
+    const xs = stabilityBuffer.current.map((p) => p.x);
+    const ys = stabilityBuffer.current.map((p) => p.y);
+
+    const varX = variance(xs);
+    const varY = variance(ys);
+
+    const spreadX = spread(xs);
+    const spreadY = spread(ys);
+
+    const enoughSamples = stabilityBuffer.current.length >= 4;
+
+    const stable =
+      enoughSamples &&
+      varX < 0.05 &&
+      varY < 0.05 &&
+      spreadX < 0.6 &&
+      spreadY < 0.6;
+
+    debug.current.studentLooking = stable;
+
+    // ⭐ UNIVERSAL FIXATION RULE (works for all humans/webcams)
+    const eyeYaw = normX;   // left/right rotation
+    const eyePitch = normY; // up/down rotation
+
+   const tooDown = eyePitch < -0.30;   // cheating downward (phone, desk, notes)
+const tooUp   = eyePitch > -0.05;   // ceiling / looking up / straight ahead
+const tooSide = Math.abs(eyeYaw) > 0.08; // sideways
+
+// Detect drift: cheating downward/upward always drifts
+const pitchDrift = spread(ys) > 0.15;
+
+// Universal fixation: stable + correct direction + no drift
+const fixation =
+  stable &&
+  !tooDown &&
+  !tooUp &&
+  !tooSide &&
+  !pitchDrift;
+
+
+    // --- ABORT: stable but wrong direction ---
+    if (stable && (tooDown || tooUp || tooSide)) {
+      notLookingTimer.current += dynamicRate.current;
+      if (notLookingTimer.current > 2000) {
+        console.log("ABORT: stable gaze but wrong direction (not looking forward)");
+        setCalibrationState("ABORTED");
+        baselineBuffer.current = [];
+        setBaseline(null);
+        notLookingTimer.current = 0;
+        return;
+      }
+    }
+
+    // --- STRICT ABORT: NEVER FIXATION ---
+    if (state === "WAITING_FOR_FIXATION" && !fixation) {
+      notLookingTimer.current += dynamicRate.current;
+      if (notLookingTimer.current > 2000) {
+        console.log("ABORT: never achieved fixation");
+        setCalibrationState("ABORTED");
+        baselineBuffer.current = [];
+        setBaseline(null);
+        notLookingTimer.current = 0;
+        return;
+      }
+    }
+
+    if (state === "WAITING_FOR_FIXATION" && fixation) {
+      setCalibrationState("COLLECTING");
+      notLookingTimer.current = 0;
+    }
+
+    // --- STRICT ABORT: FIXATION LOST DURING COLLECTING ---
+    if (state === "COLLECTING" && !fixation) {
+      notLookingTimer.current += dynamicRate.current;
+      if (notLookingTimer.current > 2000) {
+        console.log("ABORT: fixation lost during COLLECTING");
+        setCalibrationState("ABORTED");
+        baselineBuffer.current = [];
+        setBaseline(null);
+        notLookingTimer.current = 0;
+        return;
+      }
+    }
+
+    if (state === "COLLECTING" && fixation) {
+      notLookingTimer.current = 0;
+    }
+
+    // --- BASELINE CALIBRATION ---
     const N = 20;
 
-    if (isCalibrating) {
-      let count = 0;
+    if (state === "COLLECTING") {
+      baselineBuffer.current.push({ x: normX, y: normY });
+      currentCountRef.current = baselineBuffer.current.length;
 
-      switch (calibStep) {
-        case "CENTER":
-          centerSamples.current.push({ x: avgX, y: avgY });
-          count = centerSamples.current.length;
-          break;
-        case "LEFT":
-          leftSamples.current.push({ x: avgX, y: avgY });
-          count = leftSamples.current.length;
-          break;
-        case "RIGHT":
-          rightSamples.current.push({ x: avgX, y: avgY });
-          count = rightSamples.current.length;
-          break;
-        case "UP":
-          upSamples.current.push({ x: avgX, y: avgY });
-          count = upSamples.current.length;
-          break;
-        case "DOWN":
-          downSamples.current.push({ x: avgX, y: avgY });
-          count = downSamples.current.length;
-          break;
-      }
+      console.log(
+        `SAMPLE ${currentCountRef.current}/${N}: x=${normX.toFixed(
+          3
+        )}, y=${normY.toFixed(3)}`
+      );
 
-      // LOG — progress for current step only
-      setCalibProgress(`${calibStep} ${count}/${N}`);
+      if (baselineBuffer.current.length >= N) {
+        const meanX =
+          baselineBuffer.current.reduce((a, b) => a + b.x, 0) /
+          baselineBuffer.current.length;
 
-      if (
-        centerSamples.current.length >= N &&
-        leftSamples.current.length >= N &&
-        rightSamples.current.length >= N &&
-        upSamples.current.length >= N &&
-        downSamples.current.length >= N
-      ) {
-        const mean = (arr: any[], key: "x" | "y") =>
-          arr.reduce((a, b) => a + b[key], 0) / arr.length;
+        const meanY =
+          baselineBuffer.current.reduce((a, b) => a + b.y, 0) /
+          baselineBuffer.current.length;
 
-        const meanCenterX = mean(centerSamples.current, "x");
-        const meanCenterY = mean(centerSamples.current, "y");
+        console.log(
+          `COMPLETED baseline: x=${meanX.toFixed(3)}, y=${meanY.toFixed(3)}`
+        );
 
-        setBaseline({ x: meanCenterX, y: meanCenterY });
-        setIsCalibrating(false);
-
-        const meanLeftX = mean(leftSamples.current, "x");
-        const meanRightX = mean(rightSamples.current, "x");
-        const meanUpY = mean(upSamples.current, "y");
-        const meanDownY = mean(downSamples.current, "y");
-
-        const hCenter = (meanLeftX + meanRightX) / 2;
-        const hRange = Math.abs(meanRightX - meanLeftX);
-
-        const vCenter = (meanUpY + meanDownY) / 2;
-        const vRange = Math.abs(meanDownY - meanUpY);
-
-        setProfile({ hCenter, hRange, vCenter, vRange });
-
-        // LOG — final completion
-        setCalibProgress("Calibration complete");
+        setBaseline({ x: meanX, y: meanY });
+        setCalibrationState("COMPLETED");
+        notLookingTimer.current = 0;
       }
     }
+  }, [results, calibrationState]);
 
-    // --- DIRECTION ---
-    let relX = baseline ? smoothed.current.x - baseline.x * 0.5 : smoothed.current.x;
-    let relY = baseline ? smoothed.current.y - baseline.y * 0.5 : smoothed.current.y;
+  const startCalibration = () => {
+    console.log("CALIBRATION STARTED");
+    setCalibrationState("COUNTDOWN");
+    setCountdown(3);
+  };
 
-    relY *= 1.8;
-    const mirroredX = -relX;
+  const calibration = {
+    state: calibrationState,
+    collected: currentCountRef.current,
+    total: 20,
+    variance:
+      stabilityBuffer.current.length > 0
+        ? variance(stabilityBuffer.current.map((p) => p.x)) +
+          variance(stabilityBuffer.current.map((p) => p.y))
+        : 0,
+    spread:
+      stabilityBuffer.current.length > 0
+        ? Math.max(
+            spread(stabilityBuffer.current.map((p) => p.x)),
+            spread(stabilityBuffer.current.map((p) => p.y))
+          )
+        : 0,
+    cooperating: debug.current.studentLooking,
+  };
 
-    let newDirection = direction;
-    const hysteresis = 0.05;
-
-    if (profile) {
-      const { hCenter, hRange, vCenter, vRange } = profile;
-
-      if (mirroredX < hCenter - 0.3 * hRange - hysteresis) newDirection = "LEFT";
-      else if (newDirection === "LEFT" && mirroredX > hCenter - 0.3 * hRange + hysteresis) newDirection = "CENTER";
-
-      if (mirroredX > hCenter + 0.3 * hRange + hysteresis) newDirection = "RIGHT";
-      else if (newDirection === "RIGHT" && mirroredX < hCenter + 0.3 * hRange - hysteresis) newDirection = "CENTER";
-
-      if (relY < vCenter - 0.3 * vRange - hysteresis) newDirection = "UP";
-      else if (newDirection === "UP" && relY > vCenter - 0.3 * vRange + hysteresis) newDirection = "CENTER";
-
-      if (relY > vCenter + 0.3 * vRange + hysteresis) newDirection = "DOWN";
-      else if (newDirection === "DOWN" && relY < vCenter + 0.3 * vRange - hysteresis) newDirection = "CENTER";
-    }
-
-    setDirection(newDirection);
-
-  }, [results]);
-
-  const startCalibration = () => setCountdown(3);
+  const isCalibrating = calibrationState === "COLLECTING";
 
   return {
-    direction,
-    isCalibrating,
     baseline,
+    isCalibrating,
     countdown,
     startCalibration,
-    profile,
-    calibProgress,
+    calibration,
     debug: debug.current,
   };
 }
