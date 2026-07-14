@@ -18,13 +18,15 @@ import StudentCourseDetailsPage from './UI/pages/StudentCourseDetailsPage';
 import StudentAssignmentDetailsPage from './UI/pages/StudentAssignmentDetailsPage';
 import StudentExamDetailsPage from './UI/pages/StudentExamDetailsPage';
 import StudentResultsPage from './UI/pages/StudentResultsPage';
+import ReportsPage from './UI/pages/ReportsPage';
+import AssignmentReportPage from './UI/pages/AssignmentReportPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
-import ReportsPage from './UI/pages/ReportsPage';
+
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -81,6 +83,7 @@ function App() {
         <Route path="/teacher/course/:id/exams" element={<ExamPage />} />
         <Route path="/teacher/exam/:id" element={<ExamDetailsPage />} />
         <Route path="/teacher/reports" element={<ReportsPage />} />
+        <Route path="/teacher/reports/assignment-report" element={<AssignmentReportPage />} />
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/available-courses" element={<StudentAvailableCoursesPage />} />
         <Route path="/student/courses" element={<StudentCoursesPage />} />
