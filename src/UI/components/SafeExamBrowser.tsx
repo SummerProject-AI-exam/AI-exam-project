@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
+import { EXAM_CONFIG } from '../../sebconfig/examConfig';
 
 function ExamPortal() {
     const userInsideSEB = navigator.userAgent.includes('SEB');
 
     const [examSubmitted, setExamSubmitted] = useState(false);
     const [answer, setAnswer] = useState(() => localStorage.getItem('exam_answer') || '');
-    const [secondsLeft, setSecondsLeft] = useState(600);
+    const [secondsLeft, setSecondsLeft] = useState(EXAM_CONFIG.examDurationSeconds);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-    const sebDeepLinkUrl = "";
+    const sebDeepLinkUrl = EXAM_CONFIG.sebDeepLinkUrl;
 
     useEffect(() => {
         const handleOnline = () => setIsOnline(true);
@@ -114,11 +115,11 @@ function ExamPortal() {
                     style={{ 
                         background: '#ffffff', 
                         padding: '36px', 
-                        border: !isOnline ? '2px solid #b91c1c' : secondsLeft < 60 ? '2px solid #d32f2f' : '1px solid #e2e8f0', 
+                        border: !isOnline ? '2px solid #b91c1c' : secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '2px solid #d32f2f' : '1px solid #e2e8f0', 
                         borderRadius: '16px', 
                         maxWidth: '640px', 
                         width: '100%', 
-                        boxShadow: !isOnline ? '0 20px 25px -5px rgba(185, 28, 28, 0.08)' : secondsLeft < 60 ? '0 20px 25px -5px rgba(211, 47, 47, 0.08)' : '0 10px 25px -5px rgba(0, 0, 0, 0.02)', 
+                        boxShadow: !isOnline ? '0 20px 25px -5px rgba(185, 28, 28, 0.08)' : secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '0 20px 25px -5px rgba(211, 47, 47, 0.08)' : '0 10px 25px -5px rgba(0, 0, 0, 0.02)', 
                         transition: 'all 0.3s ease',
                         WebkitUserSelect: 'none',
                         MozUserSelect: 'none',
@@ -134,7 +135,7 @@ function ExamPortal() {
                                 {!isOnline ? 'Connection Lost' : 'Environment Locked'}
                             </span>
                         </div>
-                        <span style={{ fontSize: '16px', fontWeight: '700', color: secondsLeft < 60 ? '#d32f2f' : '#333', fontFamily: 'monospace', backgroundColor: secondsLeft < 60 ? '#ffebee' : '#f8fafc', padding: '6px 12px', borderRadius: '6px', border: secondsLeft < 60 ? '1px solid #ffebee' : '1px solid #f1f5f9' }}>
+                        <span style={{ fontSize: '16px', fontWeight: '700', color: secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '#d32f2f' : '#333', fontFamily: 'monospace', backgroundColor: secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '#ffebee' : '#f8fafc', padding: '6px 12px', borderRadius: '6px', border: secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '1px solid #ffebee' : '1px solid #f1f5f9' }}>
                             Time Left: {formatTime(secondsLeft)}
                         </span>
                     </div> 
@@ -146,7 +147,7 @@ function ExamPortal() {
                         </div>
                     )}
 
-                    {isOnline && secondsLeft < 60 && (
+                    {isOnline && secondsLeft < EXAM_CONFIG.warningThresholdSeconds && (
                         <div style={{ background: '#ffebee', color: '#c62828', padding: '12px 16px', borderRadius: '8px', marginBottom: '24px', fontWeight: 'bold', fontSize: '14px', border: '1px solid #ffebee', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                             Warning: Less than 1 minute remaining. Your work will auto-submit at 00:00.
@@ -174,7 +175,7 @@ function ExamPortal() {
                                     padding: '16px', 
                                     boxSizing: 'border-box', 
                                     borderRadius: '10px', 
-                                    border: !isOnline ? '1px solid #f87171' : secondsLeft < 60 ? '1px solid #d32f2f' : '1px solid #ccc', 
+                                    border: !isOnline ? '1px solid #f87171' : secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '1px solid #d32f2f' : '1px solid #ccc', 
                                     fontSize: '16px', 
                                     lineHeight: '1.6', 
                                     transition: 'all 0.2s ease', 
@@ -194,7 +195,7 @@ function ExamPortal() {
                             type="submit"
                             disabled={!isOnline}
                             style={{ 
-                                background: !isOnline ? '#94a3b8' : secondsLeft < 60 ? '#e53935' : '#10b981', 
+                                background: !isOnline ? '#94a3b8' : secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '#e53935' : '#10b981', 
                                 color: 'white', 
                                 border: 'none', 
                                 padding: '14px 24px', 
@@ -204,7 +205,7 @@ function ExamPortal() {
                                 fontWeight: 'bold', 
                                 cursor: !isOnline ? 'not-allowed' : 'pointer', 
                                 transition: 'background-color 0.2s', 
-                                boxShadow: !isOnline ? 'none' : secondsLeft < 60 ? '0 4px 12px rgba(229, 57, 53, 0.2)' : '0 4px 12px rgba(16, 185, 129, 0.15)' 
+                                boxShadow: !isOnline ? 'none' : secondsLeft < EXAM_CONFIG.warningThresholdSeconds ? '0 4px 12px rgba(229, 57, 53, 0.2)' : '0 4px 12px rgba(16, 185, 129, 0.15)' 
                             }}
                         >
                             {!isOnline ? 'Reconnecting...' : 'Submit Exam'}
@@ -213,7 +214,7 @@ function ExamPortal() {
 
                     <div style={{ background: '#fff3cd', color: '#856404', padding: '14px 18px', borderRadius: '10px', border: '1px solid #ffeeba', fontSize: '14px', marginTop: '28px', textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '10px', lineHeight: '1.5' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: '2px', flexShrink: '0' }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        <span>Press <strong>Ctrl + Q</strong> (Windows) or <strong>Cmd + Q</strong> (Mac) to exit with a password <strong>1234</strong>.</span>
+                        <span>Press <strong>Ctrl + Q</strong> (Windows) or <strong>Cmd + Q</strong> (Mac) to exit with a password <strong>{EXAM_CONFIG.exitPassword}</strong>.</span>
                     </div>
                 </div>    
             )}
