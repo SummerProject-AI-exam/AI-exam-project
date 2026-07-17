@@ -846,5 +846,30 @@ body {
 
   .generate-btn:hover{
     background: #1e4ed8;
-    
+
+  }
+
+  .summary-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .summary-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.1);
+    text-align: center;
+  }
+
+  .summary-card h3{
+    color: #555;
+    margin-bottom: 10px;
+  }
+
+  .summary-card h2{
+    font-size: 36px;
+    color: #2563eb;
   }
