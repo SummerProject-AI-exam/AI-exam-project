@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { EXAM_CONFIG } from '../../sebconfig/examConfig';
+import { AutosaveBadge, SebTroubleshootingModal, PreFlightChecklist } from './SafeExamBrowserHelpers';
 
 function ExamPortal() {
     const userInsideSEB = navigator.userAgent.includes('SEB');
@@ -97,7 +98,9 @@ function ExamPortal() {
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0070f3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     </div>
                     <h2 style={{ color: '#0f172a', marginTop: '0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.025em', marginBottom: '8px' }}>Safe Exam Portal</h2>
-                    <p style={{ color: '#475569', lineHeight: '1.6', fontSize: '15px', margin: '0 0 24px 0' }}>This test requires safe exam browser to be launched</p>
+                    <p style={{ color: '#475569', lineHeight: '1.6', fontSize: '15px', margin: '0 0 16px 0' }}>This test requires safe exam browser to be launched</p>
+
+                    <PreFlightChecklist />
 
                     <a
                         href={sebDeepLinkUrl}
@@ -160,9 +163,12 @@ function ExamPortal() {
                                 <label style={{ fontWeight: 'bold', display: 'block', color: '#333', fontSize: '16px' }}>
                                     Question 1: First example question
                                 </label>
-                                <span style={{ fontSize: '13px', color: '#777', fontWeight: '500' }}>
-                                    {getWordCount(answer)} words <span style={{ color: '#cbd5e1', margin: '0 4px' }}>|</span> {answer.length} characters
-                                </span>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <AutosaveBadge value={answer} />
+                                    <span style={{ fontSize: '13px', color: '#777', fontWeight: '500' }}>
+                                        {getWordCount(answer)} words <span style={{ color: '#cbd5e1', margin: '0 4px' }}>|</span> {answer.length} characters
+                                    </span>
+                                </div>
                             </div>
                             <textarea
                                 rows={6}
@@ -216,6 +222,8 @@ function ExamPortal() {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: '2px', flexShrink: '0' }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                         <span>Press <strong>Ctrl + Q</strong> (Windows) or <strong>Cmd + Q</strong> (Mac) to exit with a password <strong>{EXAM_CONFIG.exitPassword}</strong>.</span>
                     </div>
+
+                    <SebTroubleshootingModal />
                 </div>    
             )}
 
