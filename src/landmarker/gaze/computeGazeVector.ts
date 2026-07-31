@@ -1,75 +1,66 @@
-import type { LandmarkFeatures } from "./extractLandmarkFeatures";
-
 export interface GazeVector {
   x: number;
   y: number;
+  drift: number;
+  stability: number;
+  confidence: number;
   valid: boolean;
 }
 
-export function computeGazeVector(features: LandmarkFeatures): GazeVector {
-  const {
-    leftEyeCenter,
-    rightEyeCenter,
-    leftIrisCenter,
-    rightIrisCenter,
-    leftEyeLeftCorner,
-    leftEyeRightCorner,
-    rightEyeLeftCorner,
-    rightEyeRightCorner,
-    leftUpperEyelid,
-    leftLowerEyelid,
-    rightUpperEyelid,
-    rightLowerEyelid,
-  } = features;
-
-  if (
-    !leftEyeCenter ||
-    !rightEyeCenter ||
-    !leftIrisCenter ||
-    !rightIrisCenter ||
-    !leftEyeLeftCorner ||
-    !leftEyeRightCorner ||
-    !rightEyeLeftCorner ||
-    !rightEyeRightCorner ||
-    !leftUpperEyelid ||
-    !leftLowerEyelid ||
-    !rightUpperEyelid ||
-    !rightLowerEyelid
-  ) {
-    return { x: 0, y: 0, valid: false };
+export function computeGazeVector(
+  fv: {
+    x: number;
+    y: number;
+    valid: boolean;
+    leftEyeOpen: number;
+    rightEyeOpen: number;
+  },
+  baseline: { centerX: number; centerY: number } | null
+): GazeVector {
+  // Invalid feature vector → invalid gaze
+  if (!fv.valid) {
+    return {
+      x: 0,
+      y: 0,
+      drift: 0,
+      stability: 0,
+      confidence: 0,
+      valid: false,
+    };
   }
 
-  // Eye width (horizontal)
-  const leftWidth = Math.abs(leftEyeRightCorner.x - leftEyeLeftCorner.x);
-  const rightWidth = Math.abs(rightEyeRightCorner.x - rightEyeLeftCorner.x);
+  // Confidence from normalized eye openness
+  const confidence = Math.max(
+    0,
+    Math.min(1, fv.leftEyeOpen + fv.rightEyeOpen)
+  );
 
-  // Eye height (vertical)
-  const leftHeight = Math.abs(leftUpperEyelid.y - leftLowerEyelid.y);
-  const rightHeight = Math.abs(rightUpperEyelid.y - rightLowerEyelid.y);
+  // No baseline yet → no drift
+  if (!baseline) {
+    return {
+      x: fv.x,
+      y: fv.y,
+      drift: 0,
+      stability: confidence,
+      confidence,
+      valid: true,
+    };
+  }
 
-  const safeLeftWidth = leftWidth || 1;
-  const safeRightWidth = rightWidth || 1;
-  const safeLeftHeight = leftHeight || 1;
-  const safeRightHeight = rightHeight || 1;
+  // Baseline-relative drift
+  const dx = fv.x - baseline.centerX;
+  const dy = fv.y - baseline.centerY;
+  const drift = Math.sqrt(dx * dx + dy * dy);
 
-  // Normalized offsets
-  const leftX = (leftIrisCenter.x - leftEyeCenter.x) / safeLeftWidth;
-  const rightX = (rightIrisCenter.x - rightEyeCenter.x) / safeRightWidth;
-
-  const leftY = (leftIrisCenter.y - leftEyeCenter.y) / safeLeftHeight;
-  const rightY = (rightIrisCenter.y - rightEyeCenter.y) / safeRightHeight;
-
-  // Average both eyes
-  const gazeX = (leftX + rightX) / 2;
-  const gazeY = (leftY + rightY) / 2;
-
-  // Scale factors (universal)
-  const SCALE_X = 20;
-  const SCALE_Y = 3;
+  // Stability = confidence * (1 - drift)
+  const stability = Math.max(0, Math.min(1, confidence * (1 - drift)));
 
   return {
-    x: gazeX * SCALE_X,
-    y: gazeY * SCALE_Y,
+    x: fv.x,
+    y: fv.y,
+    drift,
+    stability,
+    confidence,
     valid: true,
   };
 }

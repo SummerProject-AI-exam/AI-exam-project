@@ -1,11 +1,11 @@
 import type { FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 
 export interface LandmarkFeatures {
+  gazeX: number;
+  gazeY: number;
+
   leftEyeCenter: { x: number; y: number } | null;
   rightEyeCenter: { x: number; y: number } | null;
-
-  leftIrisCenter: { x: number; y: number } | null;
-  rightIrisCenter: { x: number; y: number } | null;
 
   leftEyeLeftCorner: { x: number; y: number } | null;
   leftEyeRightCorner: { x: number; y: number } | null;
@@ -16,6 +16,11 @@ export interface LandmarkFeatures {
   leftLowerEyelid: { x: number; y: number } | null;
   rightUpperEyelid: { x: number; y: number } | null;
   rightLowerEyelid: { x: number; y: number } | null;
+
+  leftEyeOpen: number;
+  rightEyeOpen: number;
+
+  valid: boolean;
 }
 
 function midpoint(a: any, b: any) {
@@ -27,10 +32,10 @@ export function extractLandmarkFeatures(
 ): LandmarkFeatures {
   if (!results.faceLandmarks || results.faceLandmarks.length === 0) {
     return {
+      gazeX: 0,
+      gazeY: 0,
       leftEyeCenter: null,
       rightEyeCenter: null,
-      leftIrisCenter: null,
-      rightIrisCenter: null,
       leftEyeLeftCorner: null,
       leftEyeRightCorner: null,
       rightEyeLeftCorner: null,
@@ -39,6 +44,9 @@ export function extractLandmarkFeatures(
       leftLowerEyelid: null,
       rightUpperEyelid: null,
       rightLowerEyelid: null,
+      leftEyeOpen: 0,
+      rightEyeOpen: 0,
+      valid: false,
     };
   }
 
@@ -56,36 +64,36 @@ export function extractLandmarkFeatures(
   const RIGHT_UPPER = lm[386];
   const RIGHT_LOWER = lm[374];
 
-  // Iris landmarks
-  const leftIris = lm.slice(468, 473);
-  const rightIris = lm.slice(473, 478);
+  // Eye centers (corner midpoint)
+  const leftEyeCenter = midpoint(LEFT_EYE_LEFT, LEFT_EYE_RIGHT);
+  const rightEyeCenter = midpoint(RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT);
 
-  const leftIrisCenter = leftIris.length
-    ? leftIris.reduce(
-        (acc, p) => ({
-          x: acc.x + p.x / leftIris.length,
-          y: acc.y + p.y / leftIris.length,
-        }),
-        { x: 0, y: 0 }
-      )
-    : null;
+  // Eye openness
+  const leftEyeOpen = Math.abs(LEFT_UPPER.y - LEFT_LOWER.y);
+  const rightEyeOpen = Math.abs(RIGHT_UPPER.y - RIGHT_LOWER.y);
 
-  const rightIrisCenter = rightIris.length
-    ? rightIris.reduce(
-        (acc, p) => ({
-          x: acc.x + p.x / rightIris.length,
-          y: acc.y + p.y / rightIris.length,
-        }),
-        { x: 0, y: 0 }
-      )
-    : null;
+  // ---------- GAZE DIRECTION ----------
+  // Horizontal gaze: compare eye center to eyelid midpoint
+  const leftLidCenter = midpoint(LEFT_UPPER, LEFT_LOWER);
+  const rightLidCenter = midpoint(RIGHT_UPPER, RIGHT_LOWER);
+
+  // Gaze vector = difference between eye center and lid center
+  const gazeX =
+    ((leftEyeCenter.x - leftLidCenter.x) +
+      (rightEyeCenter.x - rightLidCenter.x)) /
+    2;
+
+  const gazeY =
+    ((leftEyeCenter.y - leftLidCenter.y) +
+      (rightEyeCenter.y - rightLidCenter.y)) /
+    2;
 
   return {
-    leftEyeCenter: midpoint(LEFT_EYE_LEFT, LEFT_EYE_RIGHT),
-    rightEyeCenter: midpoint(RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT),
+    gazeX,
+    gazeY,
 
-    leftIrisCenter,
-    rightIrisCenter,
+    leftEyeCenter,
+    rightEyeCenter,
 
     leftEyeLeftCorner: LEFT_EYE_LEFT,
     leftEyeRightCorner: LEFT_EYE_RIGHT,
@@ -96,5 +104,10 @@ export function extractLandmarkFeatures(
     leftLowerEyelid: LEFT_LOWER,
     rightUpperEyelid: RIGHT_UPPER,
     rightLowerEyelid: RIGHT_LOWER,
+
+    leftEyeOpen,
+    rightEyeOpen,
+
+    valid: true,
   };
 }

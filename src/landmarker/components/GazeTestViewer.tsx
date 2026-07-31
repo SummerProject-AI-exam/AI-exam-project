@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
-import { useGaze } from "../hooks/useGaze";
-import { useGazeAlerts } from "../gazeAlerts/useGazeAlerts";
-import { useStableGazeAlert } from "../hooks/useStableGazeAlerts";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
+import { useGaze } from "../hooks/useGaze";
+import { logFraudEvent } from "../alerts/logFraudEvent";
+import { useFraudGazeAlerts } from "../hooks/useFraudGazeAlerts";
+
+type Baseline = {
+  x: number;
+  y: number;
+  centerX: number;
+  centerY: number;
+  horizontalThreshold: number;
+  verticalThreshold: number;
+  driftThreshold: number;
+  stabilized?: boolean;
+} | null;
 
 export function GazeTestViewer() {
+  // CAMERA
   const { videoRef, startCamera, stopCamera } = useWebcam();
 
   useEffect(() => {
@@ -21,83 +33,90 @@ export function GazeTestViewer() {
   });
 
   const {
-    baseline,
-    isCalibrating,
-    countdown,
-    startCalibration,
-    calibration,
-    debug,
-  } = useGaze(results);
+  baseline,
+  isCalibrating,
+  countdown,
+  startCalibration,
+  calibration,
+  debug,
+}: {
+  baseline: Baseline;
+  isCalibrating: boolean;
+  countdown: number | null;
+  startCalibration: () => void;
+  calibration: any;
+  debug: any;
+} = useGaze(results);
 
-  const state = calibration.state;
-  const collected = calibration.collected;
-  const total = calibration.total;
 
-  const lastProgressRef = useRef(-1);
+  const monitoring = {
+  valid: debug.valid,
+  direction: debug.direction,
+  drift: debug.drift,
+};
+
+
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get("sessionId") ?? "";
+
+useFraudGazeAlerts(monitoring, debug, baseline, sessionId);
 
   useEffect(() => {
-    if (state === "COMPLETED" || state === "ABORTED") return;
-    if (!isCalibrating) return;
-
-    if (lastProgressRef.current !== collected) {
-      console.log("PROGRESS →", `${collected}/${total}`);
-      lastProgressRef.current = collected;
+    if (calibration.state === "MONITORING" && baseline) {
+      logFraudEvent({
+        sessionId,
+        eventType: "CALIBRATION_READY"
+      });
     }
-  }, [state, isCalibrating, collected, total]);
+  }, [calibration.state, baseline]);
 
-  const rawGazeAlert = useGazeAlerts("", debug);
-  const stableGazeAlert = useStableGazeAlert(rawGazeAlert, 300);
-
-  const arrowCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!arrowCanvasRef.current) return;
-    const ctx = arrowCanvasRef.current.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, arrowCanvasRef.current.width, arrowCanvasRef.current.height);
-  }, [state, isCalibrating]);
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
-
-  const [dynamicPositions, setDynamicPositions] = useState({
-    CENTER: { top: 0, left: 0 },
-  });
+  const [dotPos, setDotPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    const updateDotPositions = () => {
+    const updateDot = () => {
       const box = videoContainerRef.current?.getBoundingClientRect();
       if (!box) return;
 
-      setDynamicPositions({
-        CENTER: {
-          top: box.height * 0.5,
-          left: box.width * 0.5,
-        },
+      setDotPos({
+        top: box.height * 0.5,
+        left: box.width * 0.5,
       });
     };
 
-    updateDotPositions();
-    window.addEventListener("resize", updateDotPositions);
-    return () => window.removeEventListener("resize", updateDotPositions);
+    updateDot();
+    window.addEventListener("resize", updateDot);
+    return () => window.removeEventListener("resize", updateDot);
   }, []);
 
-  // ⭐ If calibration is complete, show the completion message
-  if (state === "COMPLETED" && baseline) {
-    return (
-      <div
-        style={{
-          color: "white",
-          padding: 20,
-          fontSize: "1.4rem",
-          textAlign: "center",
-        }}
-      >
-        Calibration complete!
-      </div>
-    );
-  }
+  const [sampleLog, setSampleLog] = useState<string>("");
 
-  // ⭐ Otherwise render the main viewer
+  useEffect(() => {
+    if (!isCalibrating) return;
+
+    const c = calibration.collected;
+    if (c === 0) return;
+
+    const log = `
+Sample ${c}/${calibration.total}
+x=${debug.x.toFixed(3)} y=${debug.y.toFixed(3)}
+stable=${debug.stability}
+fixation=${debug.valid && debug.direction === "CENTER"}
+variance=${calibration.variance.toFixed(4)}
+spread=${calibration.spread.toFixed(4)}
+drift=${debug.drift.toFixed(3)}
+direction=${debug.direction}
+valid=${debug.valid}
+confidence=${debug.confidence.toFixed(2)}
+vector=${debug.vectorMagnitude.toFixed(3)}
+`;
+
+    setSampleLog(log);
+    console.log(log);
+  }, [calibration.collected]);
+
+
   return (
     <div
       style={{
@@ -108,6 +127,7 @@ export function GazeTestViewer() {
         margin: "0 auto",
       }}
     >
+      {/* MODEL LOADING OVERLAY */}
       {!results && (
         <div
           style={{
@@ -126,7 +146,7 @@ export function GazeTestViewer() {
         </div>
       )}
 
-      {/* VIDEO AREA */}
+      {/* VIDEO + FACE MESH */}
       <div
         ref={videoContainerRef}
         style={{
@@ -136,7 +156,6 @@ export function GazeTestViewer() {
           width: "100%",
           height: "100%",
           zIndex: 1,
-          isolation: "isolate",
         }}
       >
         <video
@@ -158,13 +177,15 @@ export function GazeTestViewer() {
             width: "100%",
             height: "100%",
             pointerEvents: "none",
+            transform: "scaleX(-1)",
             zIndex: 0,
           }}
         />
 
-        {/* SIMPLE CENTER DOT FOR BASELINE CALIBRATION */}
-        {(state === "WAITING_FOR_FIXATION" || state === "COLLECTING") && (
+        {/* DOT + COUNTDOWN + SAMPLE COUNT */}
+        {(isCalibrating || countdown !== null) && (
           <>
+            {/* DOT */}
             <div
               style={{
                 position: "absolute",
@@ -172,51 +193,77 @@ export function GazeTestViewer() {
                 height: 30,
                 borderRadius: "50%",
                 background: "red",
-                top: "50%",
-                left: "50%",
                 transform: "translate(-50%, -50%)",
+                top: dotPos.top,
+                left: dotPos.left,
                 zIndex: 2,
                 pointerEvents: "none",
               }}
             />
 
-            <div
-              style={{
-                position: "absolute",
-                top: "calc(50% + 40px)",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                color: "white",
-                fontSize: "16px",
-                fontWeight: "bold",
-                zIndex: 2,
-                pointerEvents: "none",
-                textShadow: "0 0 4px black",
-              }}
-            >
-              {calibration.collected}/{calibration.total}
-            </div>
-
+            {/* COUNTDOWN */}
             {countdown !== null && (
               <div
                 style={{
                   position: "absolute",
-                  top: "calc(50% - 40px)",
-                  left: "50%",
+                  top: dotPos.top - 40,
+                  left: dotPos.left,
                   transform: "translate(-50%, -50%)",
                   color: "white",
                   fontSize: "2rem",
+                  fontWeight: "bold",
                   zIndex: 2,
+                  textShadow: "0 0 6px black",
                 }}
               >
                 {countdown}
+              </div>
+            )}
+
+            {/* SAMPLE COUNT */}
+            {isCalibrating && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: dotPos.top + 40,
+                  left: dotPos.left,
+                  transform: "translate(-50%, -50%)",
+                  color: "white",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  zIndex: 2,
+                  textShadow: "0 0 6px black",
+                }}
+              >
+                {calibration.collected}/{calibration.total}
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* DEBUG BOXES */}
+      {/* SAMPLE LOG BOX */}
+      <pre
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          width: "300px",
+          height: "300px",
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "10px",
+          borderRadius: "4px",
+          fontSize: "0.75rem",
+          overflowY: "auto",
+          whiteSpace: "pre-wrap",
+          zIndex: 9999,
+        }}
+      >
+        {sampleLog}
+      </pre>
+
+      {/* CALIBRATION LOGS */}
       <div
         style={{
           position: "absolute",
@@ -224,21 +271,56 @@ export function GazeTestViewer() {
           left: "10px",
           background: "rgba(0,0,0,0.6)",
           color: "white",
-          padding: "4px 8px",
+          padding: "6px 10px",
           borderRadius: "4px",
           fontSize: "0.8rem",
           zIndex: 9999,
         }}
       >
-        {isCalibrating && "Calibrating…"}
-        {baseline && !isCalibrating && "Calibrated"}
+        <div>State: {calibration.state}</div>
+        <div>Collected: {calibration.collected}/{calibration.total}</div>
+        <div>Variance: {calibration.variance.toFixed(4)}</div>
+        <div>Spread: {calibration.spread.toFixed(4)}</div>
+        <div>Cooperating: {calibration.cooperating ? "yes" : "no"}</div>
+        {baseline && (
+          <div>
+            Baseline: ({baseline.x.toFixed(3)}, {baseline.y.toFixed(3)})
+          </div>
+        )}
       </div>
 
+      {/* DEBUG INFO */}
       <div
         style={{
           position: "absolute",
           bottom: "10px",
-          left: "150px",
+          left: "200px",
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "6px 10px",
+          borderRadius: "4px",
+          fontSize: "0.75rem",
+          lineHeight: "1.2rem",
+          zIndex: 9999,
+        }}
+      >
+        <div>Direction: {debug.direction}</div>
+        <div>Drift: {debug.drift.toFixed(3)}</div>
+        <div>Stable: {debug.stability}</div>
+        <div>Valid: {debug.valid ? "yes" : "no"}</div>
+        <div>Confidence: {debug.confidence.toFixed(2)}</div>
+        <div>Vector: {debug.vectorMagnitude.toFixed(3)}</div>
+        <div>
+          Pos: ({debug.x.toFixed(3)}, {debug.y.toFixed(3)})
+        </div>
+      </div>
+
+      {/* PERFORMANCE DEBUG */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          left: "380px",
           background: "rgba(0,0,0,0.6)",
           color: "white",
           padding: "6px 10px",
@@ -253,6 +335,7 @@ export function GazeTestViewer() {
         <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
       </div>
 
+      {/* CALIBRATE BUTTON */}
       <button
         onClick={startCalibration}
         style={{
@@ -264,21 +347,6 @@ export function GazeTestViewer() {
       >
         Calibrate
       </button>
-
-      {countdown !== null && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "60px",
-            right: "10px",
-            color: "white",
-            fontSize: "2rem",
-            zIndex: 9999,
-          }}
-        >
-          {countdown}
-        </div>
-      )}
     </div>
   );
 }
