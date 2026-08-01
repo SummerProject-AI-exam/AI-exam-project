@@ -20,6 +20,11 @@ export function useFaceLandmarker(
   const lastGoodFrameRef = useRef<any>(null);
   const startedRef = useRef(false);
 
+  // Heat-safe throttles
+  const lastResultUpdateRef = useRef(0);
+  const lastCanvasClearRef = useRef(0);
+  const lastCanvasDrawRef = useRef(0); // ✅ new: throttle debug drawing
+
   let lastFilter = 0;
 
   function cheatingSafeFilter(detection: any, timestamp: number) {
@@ -64,11 +69,9 @@ export function useFaceLandmarker(
     let animationFrameId: number;
     let stopTimeout: number | undefined;
 
-    const fps = options?.fps ?? 15; // ❄️ cooler default
-    const maxDurationMs = options?.maxDurationMs;
+    const fps = options?.fps ?? 8; 
     const frameInterval = 1000 / fps;
     let lastTime = 0;
-    let lastResultUpdate = 0;
 
     async function init() {
       const vision = await FilesetResolver.forVisionTasks(
@@ -101,13 +104,8 @@ export function useFaceLandmarker(
         if (!cameraReady) setCameraReady(true);
         if (!ctx) return;
 
-        if (video.readyState < 2) {
-          return;
-        }
-
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-          return;
-        }
+        if (video.readyState < 2) return;
+        if (video.videoWidth === 0 || video.videoHeight === 0) return;
 
         if (canvas.width !== video.videoWidth) {
           canvas.width = video.videoWidth;
@@ -115,35 +113,43 @@ export function useFaceLandmarker(
         }
 
         const detection = landmarker.detectForVideo(video, now);
-        //console.log("RAW LANDMARKER OUTPUT:", detection);
-
         const safeFrame = cheatingSafeFilter(detection, now);
         const frameToUse = safeFrame ?? detection;
 
-        if (now - lastResultUpdate > frameInterval) {
+        frameToUse.unstable = safeFrame === null
+
+        if (now - lastResultUpdateRef.current > 150) {
           setResults({ ...frameToUse });
-          lastResultUpdate = now;
+          lastResultUpdateRef.current = now;
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (now - lastCanvasClearRef.current > 100) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          lastCanvasClearRef.current = now;
+        }
 
-        if (options?.debug && frameToUse?.faceLandmarks?.length > 0) {
+        if (
+          options?.debug &&
+          frameToUse?.faceLandmarks?.length > 0 &&
+          now - lastCanvasDrawRef.current > 150
+        ) {
           drawLandmarks(
             ctx,
             frameToUse.faceLandmarks[0],
             canvas.width,
             canvas.height
           );
+          lastCanvasDrawRef.current = now;
         }
       };
 
       animationFrameId = requestAnimationFrame(render);
 
-      if (maxDurationMs != null) {
+      if (options?.maxDurationMs != null) {
         stopTimeout = window.setTimeout(() => {
           cancelAnimationFrame(animationFrameId);
           landmarker?.close();
-        }, maxDurationMs);
+        }, options.maxDurationMs);
       }
     }
 

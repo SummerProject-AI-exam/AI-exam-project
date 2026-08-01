@@ -13,12 +13,13 @@ import AssignmentDetailsPage from './UI/pages/AssignmentDetailsPage';
 import ExamPage from './UI/pages/ExamPage';
 import ExamDetailsPage from './UI/pages/ExamDetailsPage';
 
-import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
+//import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
-import GazeTestPage from './pages/GazeTest';
+import CalibrationPage from './pages/CalibrationPage';
+import GazeAlertsPage from './pages/GazeAlertsPage';
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -28,7 +29,7 @@ function MainLogin() {
 
   const handleLoginSuccess = (userData: any, role: 'student' | 'teacher') => {
     sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    
+
     if (role === 'teacher') {
       navigate('/teacher');
     } else {
@@ -48,7 +49,7 @@ function MainLogin() {
         <LoginForm
           role="teacher"
           onBack={() => setView('selection')}
-          onLoginSuccess={(data) => handleLoginSuccess(data, 'teacher')} 
+          onLoginSuccess={(data) => handleLoginSuccess(data, 'teacher')}
         />
       )}
 
@@ -56,7 +57,7 @@ function MainLogin() {
         <LoginForm
           role="student"
           onBack={() => setView('selection')}
-          onLoginSuccess={(data) => handleLoginSuccess(data, 'student')} 
+          onLoginSuccess={(data) => handleLoginSuccess(data, 'student')}
         />
       )}
     </div>
@@ -67,7 +68,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainLogin />} /> 
+        <Route path="/" element={<MainLogin />} />
         <Route path="/teacher" element={<TeacherDashboard />} />
         <Route path="/teacher/course/:id" element={<CourseDetailsPage />} />
         <Route path="/teacher/course/:id/assignments" element={<AssignmentPage />} />
@@ -78,7 +79,8 @@ function App() {
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo sessionId="" />} />
-        <Route path="/gaze-test" element={<GazeTestPage />} />
+        <Route path="/calibration" element={<CalibrationPage />} />
+        <Route path="/gaze-alerts" element={<GazeAlertsPage />} />
       </Routes>
     </BrowserRouter>
   );
