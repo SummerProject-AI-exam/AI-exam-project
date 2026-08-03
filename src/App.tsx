@@ -21,12 +21,14 @@ import StudentResultsPage from './UI/pages/StudentResultsPage';
 import ReportsPage from './UI/pages/ReportsPage';
 import AssignmentReportPage from './UI/pages/AssignmentReportPage';
 import ExamReportPage from './UI/pages/ExamReportPage';
+import FraudReportPage from './UI/pages/FraudReportPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
+
 
 
 
@@ -87,6 +89,7 @@ function App() {
         <Route path="/teacher/reports" element={<ReportsPage />} />
         <Route path="/teacher/reports/assignment-report" element={<AssignmentReportPage />} />
         <Route path="/teacher/reports/exam-report" element={<ExamReportPage />} />
+        <Route path="/teacher/reports/fraud-report" element={<FraudReportPage />} />
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/available-courses" element={<StudentAvailableCoursesPage />} />
         <Route path="/student/courses" element={<StudentCoursesPage />} />

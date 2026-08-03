@@ -873,3 +873,22 @@ body {
     font-size: 36px;
     color: #2563eb;
   }
+  /*=============================
+  TEACHER FRAUD REPORT
+  ============================= */
+  .details-btn {
+    background: #2563eb;
+    color:white;
+    border:none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor:pointer
+  }
+
+  .report-section {
+    margin-top: 40px;
+  }
+
+  .report-section h2 {
+    margin-bottom: 20px;
+  }
