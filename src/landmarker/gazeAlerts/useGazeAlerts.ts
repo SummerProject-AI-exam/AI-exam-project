@@ -5,8 +5,8 @@ interface GazeData {
   direction: "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN";
   stability: number;
   valid: boolean;
-  drift: number;        // required
-  confidence: number;   // required
+  drift: number;        
+  confidence: number;   
 }
 
 export function useGazeAlerts(

@@ -12,19 +12,20 @@ export function classifyGazeDirection(
   valid: boolean,
   confidence: number
 ): GazeDirection {
-  if (!valid || confidence < 0.3) return "INVALID";
+  if (confidence < 0.3) return "INVALID";
 
-  // Realistic thresholds (baseline-relative)
-  const H = 0.04;   // horizontal threshold
-  const V = 0.04;   // vertical threshold (was 0.001 → broken)
+  // If MediaPipe loses landmarks but confidence is high,
+  // treat it as CENTER during calibration.
+  if (!valid) return "CENTER";
 
-  // Horizontal
+  const H = 0.03;
+  const V = 0.10;
+
   if (x > H) return "RIGHT";
   if (x < -H) return "LEFT";
 
-  // Vertical
-  if (y > V) return "DOWN";     // meaningful downward drift
-  if (y < -V) return "UP";      // meaningful upward drift
+  if (y > V) return "DOWN";
+  if (y < -V) return "UP";
 
   return "CENTER";
 }

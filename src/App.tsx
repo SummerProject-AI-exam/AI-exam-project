@@ -19,6 +19,8 @@ import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
 import GazeTestPage from './pages/GazeTest';
+import CalibrationPage from './pages/CalibrationPage';
+import GazeAlertsPage from './pages/GazeAlertsPage';
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -79,6 +81,8 @@ function App() {
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo sessionId="" />} />
         <Route path="/gaze-test" element={<GazeTestPage />} />
+        <Route path="/calibration" element={<CalibrationPage />} />
+        <Route path="/gaze-alerts" element={<GazeAlertsPage />} />
       </Routes>
     </BrowserRouter>
   );
