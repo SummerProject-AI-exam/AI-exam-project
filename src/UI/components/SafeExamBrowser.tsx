@@ -36,18 +36,19 @@ function ExamPortal() {
     //Timer to simulate a real exam situation and a character counter for the text area
     useEffect(() => {
         if (!userInsideSEB || examSubmitted) return;
-        
-        if (secondsLeft === 0) {
-            setExamSubmitted(true);
-            return;
-        }
 
         const timer = setInterval(() => {
-            setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+            setSecondsLeft((prev) => {
+                if (prev <= 1) {
+                    setExamSubmitted(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [userInsideSEB, examSubmitted, secondsLeft]);
+    }, [userInsideSEB, examSubmitted]);
 
     const formatTime = (timeInSeconds: number) => {
         const minutes = Math.floor(timeInSeconds / 60);
