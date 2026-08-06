@@ -109,38 +109,60 @@ function CourseDetailsPage() {
         <div className="course-details-page">
             <TeacherNavbar />
 
-            <div className="detail-card">
-                <h3>Title</h3>
-                <p>{course?.course_name}</p>
-            </div>
+            <h1 className="page-title">
+                Course Details
+            </h1>
 
-            <div className="detail-card">
-                <h3>Description</h3>
+            <div className="course-header-card">
+                
+                <h1>{course?.course_name}</h1>
+
+                <p>
+                    <strong>Course Code:</strong> {course?.course_code}
+                </p>
+
+            
+                
                 <p>{course?.course_description}</p>
             </div>
 
             {/* Navigate to assignment management page */}
 
-            <div className="detail-card"
+            <div className="detail-card clickable-card"
                 onClick={() => navigate(`/teacher/course/${id}/assignments`)}>
                 <h3>Assignments</h3>
+
+                <p>
+                    Create and manage assignments
+                </p>
             </div>
 
             {/* Future Exam management section */}
             <div 
-                className="detail-card"
+                className="detail-card clickable-card"
                 onClick={() => navigate(`/teacher/course/${id}/exams`)}
             >
                 <h3>Exams</h3>
+
+                <p>
+                    Create and manage exams
+                </p>
             </div>
 
             {/* Export enrolled students as CSV */}
             <div 
             className="detail-card"
-            onClick={exportStudentList}
+            
             >
                 <h3>Student List</h3>
-                <p>Download enrolled students CSV</p>
+                <p>Export the enrolled students list</p>
+
+                <button
+                    className="create-course-btn"
+                    onClick={exportStudentList}
+                >
+                    Download CSV
+                </button>
             </div>
         </div>
     )
