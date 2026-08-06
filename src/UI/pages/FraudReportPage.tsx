@@ -127,6 +127,53 @@ function FraudReportPage() {
 
     }
 
+    // Determine the risk level for a fraud event
+    const getRiskLevel = (event: any): "High" | "Medium" | "Low" => {
+
+        //Use Confidence when available
+        if (event.confidence !== null && event.confidence !== undefined) {
+
+            if (event.confidence >= 0.8) return "High"
+            if (event.confidence >= 0.5) return "Medium"
+
+            return "Low"
+        }
+
+        // Otherwise determine the risk by event type
+        switch (event.event_type?.toLowerCase()) {
+
+            // High Risk
+            case "camera_blocked":
+            case "camera_off":
+            case "multiple_faces":
+            case "gaze_eyes_covered":
+            case "fraud_gaze":
+                return "High"
+
+            // Medium Risk
+            case "window_blur":
+            case "no_face":
+            case "camera_not_ready":
+            case "gaze_looking_away":
+            case "gaze_looking_away_left":
+            case "gaze_looking_away_right":
+            case "gaze_looking_away_up":
+            case "gaze_looking_away_down":
+            case "gaze_drift_too_far":
+            case "gaze_rapid_changes":
+            case "pose_too-left":
+            case "pose_too_right":
+            case "pose_too_up":
+            case "pose_too_down":
+            case "pose_down":
+                return "Medium"
+
+            // Everything else
+            default:
+                return "Low"
+        }
+    }
+
     const loadFraudReport = async () => {
 
         const { data, error } = await supabase
@@ -186,9 +233,10 @@ function FraudReportPage() {
         //Filter by risk level
         if (selectedRisk !== "all") {
 
-            events = events.filter(event => {
+            events = events.filter(event =>
+                getRiskLevel(event).toLowerCase() === selectedRisk 
 
-                if (selectedRisk === "high")
+                /*if (selectedRisk === "high")
                     return event.confidence >= 0.8
 
                 if (selectedRisk === "medium")
@@ -197,9 +245,9 @@ function FraudReportPage() {
                         event.confidence < 0.8
                     )
 
-                return event.confidence < 0.5
+                return event.confidence < 0.5 */
 
-            })
+            )
         }
 
         //setFraudEvents(events)
@@ -210,7 +258,8 @@ function FraudReportPage() {
         )
 
         const highRiskEvents = events.filter(
-            event => event.confidence >= 0.8
+            event => getRiskLevel(event) === "High"
+            //event => event.confidence >= 0.8
         )
 
         const totalConfidence = events.reduce(
@@ -242,17 +291,15 @@ function FraudReportPage() {
             )
 
             const highRisk = studentEvents.filter(
-                event => event.confidence >= 0.8
+                event => getRiskLevel(event) === "High"
             ).length
 
             const mediumRisk = studentEvents.filter(
-                event => 
-                    event.confidence >= 0.5 &&
-                    event.confidence < 0.8
+                event => getRiskLevel(event) === "Medium"
             ).length
 
             const lowRisk = studentEvents.filter(
-                event => event.confidence < 0.5
+                event => getRiskLevel(event) === "Low"
             ).length
 
             return {
@@ -274,13 +321,15 @@ function FraudReportPage() {
                 s => s.id === event.student_id
             )
 
-            let risk = "Low"
+            /*let risk = "Low"
 
             if (event.confidence >= 0.8)
                 risk = "High"
 
             else if (event.confidence >= 0.5)
-                risk = "Medium"
+                risk = "Medium" */
+
+            const risk = getRiskLevel(event)
 
             return {
 
@@ -291,7 +340,7 @@ function FraudReportPage() {
                 email: student?.student_email ?? "-",
 
                 eventType: event.event_type,
-                confidence: event.confidence,
+                //confidence: event.confidence,
                 risk,
                 timestamp: event.timestamp,
                 details: event.details
@@ -542,7 +591,6 @@ function FraudReportPage() {
                                 <th>Student</th>
                                 <th>Email</th>
                                 <th>Event Type</th>
-                                <th>Confidence</th>
                                 <th>Risk</th>
                                 <th>Date & Time</th>
                                 <th>Details</th>
@@ -560,7 +608,7 @@ function FraudReportPage() {
                                     <td>{item.student}</td>
                                     <td>{item.email}</td>
                                     <td>{item.eventType}</td>
-                                    <td>{item.confidence}</td>
+                                    
 
                                     <td>
                                         <span
