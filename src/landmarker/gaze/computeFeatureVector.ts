@@ -1,4 +1,4 @@
-import type { LandmarkFeatures } from "./extractLandmarkFeatures";
+import type { GazeFeatures } from "./extractGazeFeatures";
 
 export interface FeatureVector {
   x: number;
@@ -8,7 +8,10 @@ export interface FeatureVector {
   rightEyeOpen: number;
 }
 
-export function computeFeatureVector(features: LandmarkFeatures): FeatureVector {
+export function computeFeatureVector(
+    features: GazeFeatures
+): FeatureVector 
+{
   if (!features.valid) {
     return {
       x: 0,

@@ -20,17 +20,26 @@ export function useGazeAlerts(
     verticalThreshold: number;
     driftThreshold: number;
   } | null,
-  debug: {
+  gazeFrame: {
+    valid: boolean;
+    fixation: boolean;
+    stable: boolean;
+    centered: boolean;
+    eyesOpen: boolean;
     direction: GazeDirection;
+    drift: number;
+    confidence: number;
+    vectorMagnitude: number;
+    eyeOpenness: number;
     x: number;
     y: number;
-    valid: boolean;
-    confidence: number;
-    eyeOpenness?: number;
   },
   dynamicRate: number = 150,
   startExam: boolean
 ): { alert: GazeAlertType | null; warmupCountdown: number | null } {
+
+const lastDirectionLog = useRef<GazeDirection>("NONE");
+const lastStatusLog = useRef(0);
 
   const alertLeft = useRef(0);
   const alertRight = useRef(0);
@@ -43,30 +52,25 @@ export function useGazeAlerts(
   const [warmupDone, setWarmupDone] = useState(false);
   const [warmupCountdown, setWarmupCountdown] = useState<number | null>(null);
 
-  // ⭐ FIX: directionRef MUST be top-level
   const directionRef = useRef<GazeDirection>("NONE");
 
-  // ⭐ FIX: update directionRef at top-level
   useEffect(() => {
-    directionRef.current = debug.direction;
-  }, [debug.direction]);
+    directionRef.current = gazeFrame.direction;
+  }, [gazeFrame.direction]);
 
   // Warm-up countdown
-// Warm-up countdown
-useEffect(() => {
-  if (!startExam) {
-    setWarmupDone(false);
-    setWarmupCountdown(null);
-    return;
-  }
+  useEffect(() => {
+    if (!startExam) {
+      setWarmupDone(false);
+      setWarmupCountdown(null);
+      return;
+    }
 
-  // Only start warm-up if it hasn't run yet
-  if (warmupDone) return;
-  if (warmupCountdown !== null) return;
+    if (warmupDone) return;
+    if (warmupCountdown !== null) return;
 
-  setWarmupCountdown(3);
-}, [startExam, warmupDone]);
-
+    setWarmupCountdown(3);
+  }, [startExam, warmupDone]);
 
   useEffect(() => {
     if (warmupCountdown === null) return;
@@ -96,11 +100,67 @@ useEffect(() => {
 
     const direction = directionRef.current;
 
-    const normX = debug.x;
-    const normY = debug.y;
-    const frameValid = debug.valid;
-    const confidence = debug.confidence;
-    const eyeOpenness = debug.eyeOpenness ?? 1;
+    let correctedDirection = direction;
+
+// Vertical axis inversion (MediaPipe Y axis)
+if (direction === "UP") correctedDirection = "DOWN";
+else if (direction === "DOWN") correctedDirection = "UP";
+
+if (direction !== lastDirectionLog.current) {
+  console.log("[DIR]", {
+    from: lastDirectionLog.current,
+    to: direction,
+
+    x: gazeFrame.x.toFixed(3),
+    y: gazeFrame.y.toFixed(3),
+
+    baselineX: baseline.x.toFixed(3),
+    baselineY: baseline.y.toFixed(3),
+
+    dx: (gazeFrame.x - baseline.x).toFixed(3),
+    dy: (gazeFrame.y - baseline.y).toFixed(3),
+
+    centered: gazeFrame.centered,
+    stable: gazeFrame.stable,
+    drift: gazeFrame.drift.toFixed(3),
+  });
+
+  lastDirectionLog.current = direction;
+}
+const now = performance.now();
+
+if (now - lastStatusLog.current > 1000) {
+  lastStatusLog.current = now;
+
+  if (direction !== "CENTER") {
+    console.log("[TRACK]", {
+      direction,
+      x: gazeFrame.x.toFixed(3),
+      y: gazeFrame.y.toFixed(3),
+      drift: gazeFrame.drift.toFixed(3),
+      centered: gazeFrame.centered,
+      stable: gazeFrame.stable,
+    });
+  }
+
+  console.log("[TIMERS]", {
+    L: alertLeft.current,
+    R: alertRight.current,
+    U: alertUp.current,
+    D: alertDown.current,
+    Eyes: alertEyes.current,
+  });
+}
+
+  const {
+  x: normX,
+  y: normY,
+  valid: frameValid,
+  confidence,
+  eyeOpenness,
+  centered,
+  stable,
+} = gazeFrame;
 
     // LEFT
     if (direction === "LEFT") alertLeft.current += dt;
@@ -122,12 +182,11 @@ useEffect(() => {
     if (downLooking) alertDown.current += dt;
     else alertDown.current -= dt * 2;
 
-    // EYES COVERED
+    // EYES COVERED (now using gazeFrame)
     const eyesCovered =
       !frameValid ||
       confidence < 0.5 ||
-      eyeOpenness < 0.3 ||
-      debug.valid === false;
+      eyeOpenness < 0.3;
 
     if (eyesCovered) alertEyes.current += dt;
     else alertEyes.current -= dt * 2;

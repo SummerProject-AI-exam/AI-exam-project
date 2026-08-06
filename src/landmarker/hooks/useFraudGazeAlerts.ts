@@ -9,12 +9,6 @@ type Monitoring = {
   drift: number;
 };
 
-type DebugGaze = {
-  stability: number;
-  confidence: number;
-  vectorMagnitude: number;
-};
-
 type Baseline = {
   x: number;
   y: number;
@@ -28,7 +22,11 @@ type Baseline = {
 
 export function useFraudGazeAlerts(
   monitoring: Monitoring,
-  debug: DebugGaze,
+  gazeFrame: {
+    stable: boolean;
+    confidence: number;
+    vectorMagnitude: number;
+  },
   baseline: Baseline,
   sessionId: string
 ) {
@@ -42,40 +40,51 @@ export function useFraudGazeAlerts(
 
     const now = performance.now();
 
-  const normalDown =
+    // ⭐ Map new gazeFrame fields
+    const stability = gazeFrame.stable ? 1 : 0;
+    const confidence = gazeFrame.confidence;
+    const magnitude = gazeFrame.vectorMagnitude;
+
+    // ---------- DOWN LOOKING ----------
+    const normalDown =
       monitoring.direction === "DOWN" &&
       monitoring.drift < baseline.centerY * 1.2 &&
-      debug.confidence > 0.5;
+      confidence > 0.5;
 
     const suspiciousDown =
       monitoring.direction === "DOWN" &&
       monitoring.drift > baseline.verticalThreshold &&
-      debug.confidence > 0.5;
+      confidence > 0.5;
 
     const extremeDown =
       monitoring.direction === "DOWN" &&
       monitoring.drift > baseline.verticalThreshold * 1.8 &&
-      debug.confidence > 0.5;
+      confidence > 0.5;
 
+    // ---------- LEFT / RIGHT ----------
     const lookingAway =
       monitoring.direction === "LEFT" ||
       monitoring.direction === "RIGHT";
 
+    // ---------- UP ----------
     const suspiciousUp =
       monitoring.direction === "UP" &&
       monitoring.drift > baseline.verticalThreshold &&
-      debug.confidence > 0.5;
+      confidence > 0.5;
 
+    // ---------- DRIFT ----------
     const driftTooHigh =
       monitoring.drift > baseline.driftThreshold;
 
+    // ---------- STABILITY ----------
     const unstable =
-      debug.stability < 0.2;
+      stability < 0.2;
 
-   
+    // ---------- EYES COVERED ----------
     const eyesCovered =
-      debug.confidence < 0.3;
+      confidence < 0.3;
 
+    // ---------- SUSPICIOUS CONDITIONS ----------
     const suspicious =
       suspiciousDown ||
       extremeDown ||
@@ -103,7 +112,7 @@ export function useFraudGazeAlerts(
         fraudTriggered.current = true;
       }
     } else {
-        if (normalDown) return;
+      if (normalDown) return;
 
       if (safeReturnStart.current === null) {
         safeReturnStart.current = now;
@@ -120,8 +129,9 @@ export function useFraudGazeAlerts(
     monitoring.valid,
     monitoring.direction,
     monitoring.drift,
-    debug.stability,
-    debug.confidence,
+    gazeFrame.stable,
+    gazeFrame.confidence,
+    gazeFrame.vectorMagnitude,
     baseline?.verticalThreshold,
     baseline?.driftThreshold,
     baseline?.centerY,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { extractLandmarkFeatures } from "../gaze/extractLandmarkFeatures";
+import { extractGazeFeatures } from "../gaze/extractGazeFeatures";
 import { smoothVector } from "../gaze/smoothVector";
 import { computeFeatureVector } from "../gaze/computeFeatureVector";
 import type { GazeVector } from "../gaze/computeGazeVector";
@@ -26,16 +26,20 @@ const SMOOTH_WINDOW = 1;
 const CENTER_X = 0.08;
 const CENTER_Y = 0.08;
 
+
+const CENTER_ENTER_MULT = 1.0;
+const CENTER_EXIT_MULT = 1.35;
+
 export function useGaze(results: any) {
 
-  const lastDiagLog = useRef(0);
+  /* const lastDiagLog = useRef(0);
   function diagLog(fn: () => void) {
     const now = performance.now();
     if (now - lastDiagLog.current > 1000) {
       lastDiagLog.current = now;
       fn();
     }
-  }
+  } */
   const [baseline, setBaseline] = useState<{
     x: number;
     y: number;
@@ -125,13 +129,26 @@ export function useGaze(results: any) {
   const dxBuffer = useRef<number[]>([]);
   const dyBuffer = useRef<number[]>([]);
 
-  const alertLeft = useRef(0);
-  const alertRight = useRef(0);
-  const alertUp = useRef(0);
-  const alertDown = useRef(0);
-  const alertEyes = useRef(0);
-
-  const alerts = useRef<string[]>([]);
+  const gazeFrame = useRef({
+  valid: false,
+  fixation: false,
+  stable: false,
+  centered: false,
+  eyesOpen: true,
+  direction: "NONE" as
+    | "CENTER"
+    | "LEFT"
+    | "RIGHT"
+    | "UP"
+    | "DOWN"
+    | "NONE",
+  drift: 0,
+  confidence: 0,
+  vectorMagnitude: 0,
+  eyeOpenness: 1,
+  x: 0,
+  y: 0,
+});
 
   const variance = (arr: number[]) => {
     if (arr.length === 0) return 0;
@@ -180,15 +197,6 @@ export function useGaze(results: any) {
     dxBuffer.current = [];
     dyBuffer.current = [];
 
-    alertLeft.current = 0;
-    alertRight.current = 0;
-    alertUp.current = 0;
-    alertDown.current = 0;
-    alertEyes.current = 0;
-
-    alerts.current = [];
-
-
     setBaseline(null);
     setCalibrationState("ABORTED");
   };
@@ -204,18 +212,37 @@ export function useGaze(results: any) {
     const jitterY = Math.sqrt(variance(ys));
     const jitter = Math.max(jitterX, jitterY);
 
-    const CENTER_MULT = 2.2;
-    const HORIZ_MULT = 2.0;
-    const VERT_MULT = 4.0;
-    const DRIFT_MULT = 2.0;
+const CENTER_MULT = 2.2;
+const HORIZ_MULT = 2.0;
+const VERT_MULT = 4.0;
+const DRIFT_MULT = 2.0;
 
-    const centerX = jitter * CENTER_MULT;
-    const centerY = jitter * CENTER_MULT;
+// Universal minimums (normalized coordinates)
+const MIN_CENTER_X = 0.045;
+const MIN_CENTER_Y = 0.050;
 
-    const horizontalThreshold = jitter * HORIZ_MULT;
-    const verticalThreshold = jitter * VERT_MULT;
+const MIN_HORIZONTAL = 0.040;
+const MIN_VERTICAL = 0.070;
 
-    const driftThreshold = jitter * DRIFT_MULT;
+const MIN_DRIFT = 0.040;
+
+const centerX = Math.max(MIN_CENTER_X, jitter * CENTER_MULT);
+const centerY = Math.max(MIN_CENTER_Y, jitter * CENTER_MULT);
+
+const horizontalThreshold = Math.max(
+  MIN_HORIZONTAL,
+  jitter * HORIZ_MULT
+);
+
+const verticalThreshold = Math.max(
+  MIN_VERTICAL,
+  jitter * VERT_MULT
+);
+
+const driftThreshold = Math.max(
+  MIN_DRIFT,
+  jitter * DRIFT_MULT
+);
 
     console.log("BASELINE:",
       "meanX:", meanX.toFixed(3),
@@ -285,13 +312,6 @@ export function useGaze(results: any) {
 
       invalidTimer.current = 0;
       fixationTimer.current = 0;
-      alertLeft.current = 0;
-      alertRight.current = 0;
-      alertUp.current = 0;
-      alertDown.current = 0;
-      alertEyes.current = 0;
-
-      alerts.current = [];
 
       setCalibrationState("WAITING_FOR_FIXATION");
       setCountdown(null);
@@ -338,7 +358,7 @@ export function useGaze(results: any) {
       invalidTimer.current = 0;
     }
 
-    const features = extractLandmarkFeatures(results);
+    const features = extractGazeFeatures(results);
     const raw = computeFeatureVector(features);
     const end = performance.now();
     debug.current.detectionTime = end - start;
@@ -349,6 +369,7 @@ export function useGaze(results: any) {
     dynamicRate.current = isCalibratingPhase ? BASE_CALIB_RATE : BASE_NORMAL_RATE;
 
     const gaze = computeGazeVector(raw, baseline);
+
     smoothVector(prev.current, gaze, smoothed.current, 0.75);
     prev.current = { ...smoothed.current };
 
@@ -400,13 +421,13 @@ export function useGaze(results: any) {
     let stable = false;
 
     if (!baseline) {
-      console.log({
+      /* console.log({
         samples: stabilityBuffer.current.length,
         spreadX,
         spreadY,
         varX,
         varY,
-      });
+      }); */
 
       stable =
         enoughSamples &&
@@ -424,19 +445,19 @@ export function useGaze(results: any) {
         varY < jitter * 1.5;
     }
 
-    console.log({
+    /* console.log({
       //dx,
       //dy,
       CENTER_X,
       CENTER_Y,
-    });
+    }); */
 
-    console.log({
+    /* console.log({
       smoothedX: smoothed.current.x,
       smoothedY: smoothed.current.y,
       normX,
       normY,
-    });
+    }); */
 
     const frameValid =
       faceVisible &&
@@ -487,7 +508,7 @@ export function useGaze(results: any) {
         Math.abs(normX - provisionalCenter.current.x) < provisionalCenter.current.centerX &&
         Math.abs(normY - provisionalCenter.current.y) < provisionalCenter.current.centerY;
 
-      console.log({
+      /* console.log({
         //centeredPreCalibration,
         stable,
         meanX_pre,
@@ -496,7 +517,7 @@ export function useGaze(results: any) {
         centerY_pre,
         jitter_pre,
         fixationTimer: fixationTimer.current,
-      });
+      }); */
 
       if (!(centeredLocal && stable)) {
         fixationTimer.current += dynamicRate.current;
@@ -519,9 +540,16 @@ export function useGaze(results: any) {
 
     if (frameValid) {
 
-      const dx = baseline ? normX - baseline.x : normX;
-      const dy = baseline ? normY - baseline.y : normY;
+      const referenceX = baseline
+    ? baseline.x
+    : provisionalCenter.current.x;
 
+const referenceY = baseline
+    ? baseline.y
+    : provisionalCenter.current.y;
+
+const dx = normX - referenceX;
+const dy = normY - referenceY;
       dxBuffer.current.push(dx);
       dyBuffer.current.push(dy);
       if (dxBuffer.current.length > 3) dxBuffer.current.shift();
@@ -538,25 +566,55 @@ export function useGaze(results: any) {
       const centerX = baseline ? baseline.centerX : provisionalCenter.current.centerX;
       const centerY = baseline ? baseline.centerY : provisionalCenter.current.centerY;
 
-      const isCenter =
-        absDx < centerX &&
-        absDy < centerY;
+const enterCenterX = centerX * CENTER_ENTER_MULT;
+const enterCenterY = centerY * CENTER_ENTER_MULT;
 
+const exitCenterX = centerX * CENTER_EXIT_MULT;
+const exitCenterY = centerY * CENTER_EXIT_MULT;
 
-      if (isCenter) {
-        direction = "CENTER";
-      } else {
-        if (absDx > absDy) {
-          direction = smoothDx > 0 ? "RIGHT" : "LEFT";
-        } else {
-          direction = smoothDy > 0 ? "DOWN" : "UP";
-        }
-      }
+const wasCenter = lastDirection.current === "CENTER";
+
+const inCenter = wasCenter
+  ? absDx < exitCenterX && absDy < exitCenterY
+  : absDx < enterCenterX && absDy < enterCenterY;
+
+if (inCenter) {
+  direction = "CENTER";
+} else if (absDx > absDy) {
+  direction = smoothDx > 0 ? "RIGHT" : "LEFT";
+} else {
+  direction = smoothDy > 0 ? "DOWN" : "UP";
+}
     }
 
-    if (direction !== lastDirection.current) {
-      lastDirection.current = direction;
-    }
+ if (direction !== lastDirection.current) {
+  console.log("[GAZE DIR]", {
+    from: lastDirection.current,
+    to: direction,
+
+    x: normX.toFixed(3),
+    y: normY.toFixed(3),
+
+    dx: dxBuffer.current.length
+      ? (
+          dxBuffer.current.reduce((a, b) => a + b, 0) /
+          dxBuffer.current.length
+        ).toFixed(3)
+      : "0",
+
+    dy: dyBuffer.current.length
+      ? (
+          dyBuffer.current.reduce((a, b) => a + b, 0) /
+          dyBuffer.current.length
+        ).toFixed(3)
+      : "0",
+
+    centerX: (baseline?.centerX ?? provisionalCenter.current.centerX).toFixed(3),
+    centerY: (baseline?.centerY ?? provisionalCenter.current.centerY).toFixed(3),
+  });
+
+  lastDirection.current = direction;
+}
 
     const confidence = faceVisible && raw.valid ? 1 : 0.2;
     const eyeOpenness = 1;
@@ -566,7 +624,7 @@ export function useGaze(results: any) {
       eyeOpenness < 0.3 ||
       confidence < 0.5;
 
-    console.log({
+    /* console.log({
       frameValid,
       centered,
       stable,
@@ -574,7 +632,7 @@ export function useGaze(results: any) {
       confidence,
       direction,
       baseline: !!baseline,
-    });
+    }); */
 
     const fixation =
       frameValid &&
@@ -587,9 +645,9 @@ export function useGaze(results: any) {
         direction === "CENTER"
       );
 
-    console.log({
+    /* console.log({
       fixation
-    });
+    }); */
 
     const frame = {
       valid: frameValid,
@@ -605,6 +663,8 @@ export function useGaze(results: any) {
       x: normX,
       y: normY,
     };
+
+    gazeFrame.current = frame;
 
     setDebugState({
       ...debug.current,
@@ -654,78 +714,6 @@ export function useGaze(results: any) {
       return;
     }
 
-    // Tier‑1 alerts in MONITORING
-    if (state === "MONITORING" && baseline) {
-      const dt = dynamicRate.current;
-
-      // LEFT
-      if (direction === "LEFT") alertLeft.current += dt;
-      else alertLeft.current -= dt * 2;
-
-      // RIGHT
-      if (direction === "RIGHT") alertRight.current += dt;
-      else alertRight.current -= dt * 2;
-
-      // UP
-      if (direction === "UP") alertUp.current += dt;
-      else alertUp.current -= dt * 2;
-
-      // DOWN (below baseline, not just keyboard)
-      const downLooking =
-        direction === "DOWN" &&
-        normY > baseline.y + baseline.verticalThreshold;
-
-      if (downLooking) alertDown.current += dt;
-      else alertDown.current -= dt * 2;
-
-      // EYES COVERED / invalid
-      if (eyesCovered) alertEyes.current += dt;
-      else alertEyes.current -= dt * 2;
-
-      // Clamp
-      alertLeft.current = Math.max(0, alertLeft.current);
-      alertRight.current = Math.max(0, alertRight.current);
-      alertUp.current = Math.max(0, alertUp.current);
-      alertDown.current = Math.max(0, alertDown.current);
-      alertEyes.current = Math.max(0, alertEyes.current);
-
-      // Thresholds (first version)
-      if (
-        alertLeft.current > 1500 &&
-        !alerts.current.includes("LOOKING_AWAY_LEFT")
-      ) {
-        alerts.current.push("LOOKING_AWAY_LEFT");
-      }
-
-      if (
-        alertRight.current > 1500 &&
-        !alerts.current.includes("LOOKING_AWAY_RIGHT")
-      ) {
-        alerts.current.push("LOOKING_AWAY_RIGHT");
-      }
-
-      if (
-        alertUp.current > 1500 &&
-        !alerts.current.includes("LOOKING_AWAY_UP")
-      ) {
-        alerts.current.push("LOOKING_AWAY_UP");
-      }
-
-      if (
-        alertDown.current > 1500 &&
-        !alerts.current.includes("LOOKING_AWAY_DOWN")
-      ) {
-        alerts.current.push("LOOKING_AWAY_DOWN");
-      }
-
-      if (
-        alertEyes.current > 800 &&
-        !alerts.current.includes("EYES_COVERED")
-      ) {
-        alerts.current.push("EYES_COVERED");
-      }
-    }
-
   }, [results, calibrationState]);
 
   const startCalibration = () => {
@@ -772,6 +760,7 @@ export function useGaze(results: any) {
     startCalibration,
     calibration,
     debug: debugState,
-    alerts: alerts.current,
+    gazeFrame: gazeFrame.current,
+    dynamicRate: dynamicRate.current,
   };
 }

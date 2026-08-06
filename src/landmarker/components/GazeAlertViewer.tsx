@@ -25,7 +25,8 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
   const {
     baseline,
     calibration,
-    debug,
+    gazeFrame,
+    dynamicRate,
     setBaseline,
     setCalibrationState
   } = useGaze(results);
@@ -36,29 +37,33 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
   const { alert: gazeAlert, warmupCountdown } = useGazeAlerts(
     calibration.state,
     baseline,
-    debug,
-    debug.throttle,
+    gazeFrame,
+    dynamicRate,
     startExam
   );
 
-  // Load saved baseline
   useEffect(() => {
     const saved = localStorage.getItem("gazeBaseline");
     if (saved) {
-      const baseline = JSON.parse(saved);
-      setBaseline(baseline);
-      setCalibrationState("MONITORING");
+      const loaded = JSON.parse(saved);
+
+      // Only accept stabilized baselines
+      if (loaded && loaded.stabilized) {
+        setBaseline(loaded);
+        setCalibrationState("MONITORING");
+      }
     }
   }, []);
 
   const monitoringActive = calibration.state === "MONITORING";
 
   const monitoring = {
-    valid: debug.valid,
-    direction: debug.direction,
-    drift: debug.drift,
+    valid: gazeFrame.valid,
+    direction: gazeFrame.direction,
+    drift: gazeFrame.drift,
   };
-  useFraudGazeAlerts(monitoring, debug, baseline, sessionId);
+
+  useFraudGazeAlerts(monitoring, gazeFrame, baseline, sessionId);
   useAlertsGaze(gazeAlert, sessionId);
 
   useEffect(() => {
@@ -151,7 +156,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           </div>
         )}
 
-        {/* ⭐ Warm-up countdown from hook */}
+        {/* ⭐ Warm-up countdown */}
         {startExam && warmupCountdown !== null && (
           <div style={{ fontWeight: "bold", marginBottom: "10px" }}>
             Warm-up: {warmupCountdown}
@@ -162,13 +167,15 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           Monitoring: {monitoringActive ? "Active" : "Inactive"}
         </div>
 
-        <div>Direction: {debug.direction}</div>
-        <div>Drift: {debug.drift.toFixed(3)}</div>
-        <div>Stability: {debug.stability.toFixed(2)}</div>
-        <div>Confidence: {debug.confidence.toFixed(2)}</div>
-        <div>Valid: {debug.valid ? "yes" : "no"}</div>
+        {/* ⭐ REAL GAZE DATA */}
+        <div>Direction: {gazeFrame.direction}</div>
+        <div>Drift: {gazeFrame.drift.toFixed(3)}</div>
+        <div>Stable: {gazeFrame.stable ? "yes" : "no"}</div>
+        <div>Centered: {gazeFrame.centered ? "yes" : "no"}</div>
+        <div>Confidence: {gazeFrame.confidence.toFixed(2)}</div>
+        <div>Valid: {gazeFrame.valid ? "yes" : "no"}</div>
         <div>
-          Pos: ({debug.x.toFixed(3)}, {debug.y.toFixed(3)})
+          Pos: ({gazeFrame.x.toFixed(3)}, {gazeFrame.y.toFixed(3)})
         </div>
 
         <div style={{ marginTop: "10px", fontWeight: "bold" }}>
