@@ -3,8 +3,8 @@ import { useWebcam } from "../hooks/useWebcam";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 import { useGaze } from "../hooks/useGaze";
 import { useFraudGazeAlerts } from "../hooks/useFraudGazeAlerts";
-import type { GazeAlertType } from "../gazeAlerts/alertTypesGaze";
 import { useAlertsGaze } from "../alerts/useAlertsGaze";
+import { useGazeAlerts } from "../hooks/useGazeAlerts";
 
 export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
 
@@ -17,10 +17,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
 
   const videoRefStable = videoRef as React.RefObject<HTMLVideoElement>;
 
-  const {
-    canvasRef,
-    results
-  } = useFaceLandmarker(videoRefStable, {
+  const { canvasRef, results } = useFaceLandmarker(videoRefStable, {
     fps: 10,
     maxDurationMs: undefined,
   });
@@ -29,12 +26,22 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
     baseline,
     calibration,
     debug,
-    alerts,
     setBaseline,
     setCalibrationState
   } = useGaze(results);
 
-  // ⭐ Load baseline from localStorage
+  const [startExam, setStartExam] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  const { alert: gazeAlert, warmupCountdown } = useGazeAlerts(
+    calibration.state,
+    baseline,
+    debug,
+    debug.throttle,
+    startExam
+  );
+
+  // Load saved baseline
   useEffect(() => {
     const saved = localStorage.getItem("gazeBaseline");
     if (saved) {
@@ -52,23 +59,21 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
     drift: debug.drift,
   };
   useFraudGazeAlerts(monitoring, debug, baseline, sessionId);
-
-  const [currentAlert, setCurrentAlert] = useState<string | null>(null);
+  useAlertsGaze(gazeAlert, sessionId);
 
   useEffect(() => {
-    if (!monitoringActive) {
-      setCurrentAlert(null);
+    if (countdown === null) return;
+
+    if (countdown === 0) {
+      setStartExam(true);
+      setCountdown(null);
       return;
     }
 
-    if (alerts.length > 0) {
-      setCurrentAlert(alerts[alerts.length - 1]);
-    } else {
-      setCurrentAlert(null);
-    }
-  }, [alerts, monitoringActive]);
+    const t = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
-  useAlertsGaze(currentAlert as GazeAlertType | null, sessionId);
   return (
     <div
       style={{
@@ -105,7 +110,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
         }}
       />
 
-      {/* ALERT BOX */}
+      {/* UI OVERLAY */}
       <div
         style={{
           position: "absolute",
@@ -121,6 +126,38 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           minWidth: "260px",
         }}
       >
+        {/* ⭐ Start Exam Button */}
+        {!startExam && countdown === null && (
+          <button
+            onClick={() => setCountdown(3)}
+            style={{
+              padding: "8px 12px",
+              background: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              marginBottom: "10px",
+            }}
+          >
+            Start Exam
+          </button>
+        )}
+
+        {/* ⭐ Visible countdown */}
+        {countdown !== null && (
+          <div style={{ fontWeight: "bold", marginBottom: "10px" }}>
+            Exam starting in: {countdown}
+          </div>
+        )}
+
+        {/* ⭐ Warm-up countdown from hook */}
+        {startExam && warmupCountdown !== null && (
+          <div style={{ fontWeight: "bold", marginBottom: "10px" }}>
+            Warm-up: {warmupCountdown}
+          </div>
+        )}
+
         <div style={{ fontWeight: "bold", marginBottom: "6px" }}>
           Monitoring: {monitoringActive ? "Active" : "Inactive"}
         </div>
@@ -135,7 +172,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
         </div>
 
         <div style={{ marginTop: "10px", fontWeight: "bold" }}>
-          Alert: {currentAlert ?? "None"}
+          Alert: {gazeAlert ?? "None"}
         </div>
       </div>
     </div>

@@ -15,9 +15,19 @@ export function computeGazeVector(
     leftEyeOpen: number;
     rightEyeOpen: number;
   },
-  baseline: { centerX: number; centerY: number } | null
+baseline: {
+  x: number;
+  y: number;
+  centerX: number;
+  centerY: number;
+  horizontalThreshold: number;
+  verticalThreshold: number;
+  driftThreshold: number;
+  stabilized?: boolean;
+} | null
+
 ): GazeVector {
-  // Invalid feature vector → invalid gaze
+
   if (!fv.valid) {
     return {
       x: 0,
@@ -29,13 +39,11 @@ export function computeGazeVector(
     };
   }
 
-  // Confidence from normalized eye openness
   const confidence = Math.max(
     0,
     Math.min(1, fv.leftEyeOpen + fv.rightEyeOpen)
   );
 
-  // No baseline yet → no drift
   if (!baseline) {
     return {
       x: fv.x,
@@ -47,12 +55,11 @@ export function computeGazeVector(
     };
   }
 
-  // Baseline-relative drift
-  const dx = fv.x - baseline.centerX;
-  const dy = fv.y - baseline.centerY;
+const dx = fv.x - baseline.x;
+const dy = fv.y - baseline.y;
+
   const drift = Math.sqrt(dx * dx + dy * dy);
 
-  // Stability = confidence * (1 - drift)
   const stability = Math.max(0, Math.min(1, confidence * (1 - drift)));
 
   return {

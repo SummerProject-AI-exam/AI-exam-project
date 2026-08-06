@@ -23,12 +23,8 @@ const BASE_NORMAL_RATE = 1000 / 10;
 const STABILITY_WINDOW = 5;
 const SMOOTH_WINDOW = 1;
 
-const CENTER_X = 0.12;
-const CENTER_Y = 0.12;
-
-const MAX_SPREAD = 0.25;
-const MAX_VARIANCE = 0.05;
-
+const CENTER_X = 0.08;
+const CENTER_Y = 0.08;
 
 export function useGaze(results: any) {
 
@@ -111,13 +107,20 @@ export function useGaze(results: any) {
   const [debugState, setDebugState] = useState(debug.current);
 
   const stabilityBuffer = useRef<{ x: number; y: number }[]>([]);
-  const notLookingTimer = useRef(0);
+  const waitingCenterBuffer = useRef<{ x: number; y: number }[]>([]);
+
+  const provisionalCenter = useRef({
+    x: 0,
+    y: 0,
+    centerX: CENTER_X,
+    centerY: CENTER_Y,
+  });
+
+  const invalidTimer = useRef(0);
+  const fixationTimer = useRef(0);
 
   const lastDirection = useRef<"CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN" | "NONE">("NONE");
   const lastFixation = useRef(false);
-  const lastFrameValid = useRef(true);
-  const lastDx = useRef(0);
-  const lastDy = useRef(0);
 
   const dxBuffer = useRef<number[]>([]);
   const dyBuffer = useRef<number[]>([]);
@@ -168,13 +171,23 @@ export function useGaze(results: any) {
 
 
     currentCountRef.current = 0;
-    notLookingTimer.current = 0;
+    invalidTimer.current = 0;
+    fixationTimer.current = 0;
 
     lastProcessTime.current = 0;
     dynamicRate.current = BASE_NORMAL_RATE;
 
     dxBuffer.current = [];
     dyBuffer.current = [];
+
+    alertLeft.current = 0;
+    alertRight.current = 0;
+    alertUp.current = 0;
+    alertDown.current = 0;
+    alertEyes.current = 0;
+
+    alerts.current = [];
+
 
     setBaseline(null);
     setCalibrationState("ABORTED");
@@ -226,13 +239,11 @@ export function useGaze(results: any) {
     });
 
     setCalibrationState("MONITORING");
-    notLookingTimer.current = 0;
   };
 
 
   useEffect(() => {
     stabilityBuffer.current = [];
-    notLookingTimer.current = 0;
   }, []);
 
   useEffect(() => {
@@ -243,7 +254,6 @@ export function useGaze(results: any) {
       setBaseline(null);
 
       stabilityBuffer.current = [];
-      //notLookingTimer.current = 0;
       currentCountRef.current = 0;
 
       buffer.current = [];
@@ -272,6 +282,17 @@ export function useGaze(results: any) {
       lastProcessTime.current = 0;
       dynamicRate.current = BASE_CALIB_RATE;
 
+
+      invalidTimer.current = 0;
+      fixationTimer.current = 0;
+      alertLeft.current = 0;
+      alertRight.current = 0;
+      alertUp.current = 0;
+      alertDown.current = 0;
+      alertEyes.current = 0;
+
+      alerts.current = [];
+
       setCalibrationState("WAITING_FOR_FIXATION");
       setCountdown(null);
       return;
@@ -283,6 +304,10 @@ export function useGaze(results: any) {
 
   useEffect(() => {
     const state = calibrationState as CalibrationState;
+    const now = performance.now();
+    if (now - lastProcessTime.current < dynamicRate.current) return;
+    const delta = now - lastProcessTime.current;
+    lastProcessTime.current = now;
 
     if (
       state !== "WAITING_FOR_FIXATION" &&
@@ -292,22 +317,25 @@ export function useGaze(results: any) {
       return;
     }
 
-    const now = performance.now();
-    if (now - lastProcessTime.current < dynamicRate.current) return;
-    const delta = now - lastProcessTime.current;
-    lastProcessTime.current = now;
-
-    debug.current.fps = 1000 / delta;
-    debug.current.throttle = dynamicRate.current;
-
     const start = performance.now();
 
     const faceVisible = !!results?.faceLandmarks?.length;
 
     if (!faceVisible) {
+      if (state !== "MONITORING") {
+        invalidTimer.current += dynamicRate.current;
+
+        if (invalidTimer.current > INVALID_TIMEOUT) {
+          abortCalibration("No face detected");
+          return;
+        }
+      }
+
       debug.current.valid = false;
       setDebugState(debug.current);
-      return
+      return;
+    } else {
+      invalidTimer.current = 0;
     }
 
     const features = extractLandmarkFeatures(results);
@@ -335,9 +363,25 @@ export function useGaze(results: any) {
     const normX = Math.max(-1, Math.min(1, avgX));
     const normY = Math.max(-1, Math.min(1, avgY));
 
+
+    let drift = 0;
+
+    if (baseline) {
+      const dx = normX - baseline.x;
+      const dy = normY - baseline.y;
+      drift = Math.sqrt(dx * dx + dy * dy);
+    }
+
+
     stabilityBuffer.current.push({ x: normX, y: normY });
     if (stabilityBuffer.current.length > STABILITY_WINDOW) {
       stabilityBuffer.current.shift();
+    }
+    if (state === "WAITING_FOR_FIXATION") {
+      waitingCenterBuffer.current.push({ x: normX, y: normY });
+      if (waitingCenterBuffer.current.length > 10) {
+        waitingCenterBuffer.current.shift();
+      }
     }
 
     const xs = stabilityBuffer.current.map((p) => p.x);
@@ -356,6 +400,14 @@ export function useGaze(results: any) {
     let stable = false;
 
     if (!baseline) {
+      console.log({
+        samples: stabilityBuffer.current.length,
+        spreadX,
+        spreadY,
+        varX,
+        varY,
+      });
+
       stable =
         enoughSamples &&
         spreadX < 0.50 &&
@@ -372,48 +424,101 @@ export function useGaze(results: any) {
         varY < jitter * 1.5;
     }
 
-const dx = smoothed.current.x;
-const dy = smoothed.current.y;
+    console.log({
+      //dx,
+      //dy,
+      CENTER_X,
+      CENTER_Y,
+    });
 
-    const centeredPreCalibration =
-  Math.abs(dx) < CENTER_X &&
-  Math.abs(dy) < CENTER_Y;
-
-
-    let centeredPostCalibration = true;
-    if (baseline) {
-      centeredPostCalibration =
-        Math.abs(normX - baseline.x) < baseline.centerX &&
-        Math.abs(normY - baseline.y) < baseline.centerY;
-    }
-
-    const centered =
-      calibrationState === "MONITORING"
-        ? centeredPostCalibration
-        : centeredPreCalibration;
+    console.log({
+      smoothedX: smoothed.current.x,
+      smoothedY: smoothed.current.y,
+      normX,
+      normY,
+    });
 
     const frameValid =
       faceVisible &&
       validVector;
 
-    const fixation =
-      frameValid &&
-      centered;
+    let centered = false;
+
+    if (baseline) {
+      centered =
+        Math.abs(normX - baseline.x) < baseline.centerX &&
+        Math.abs(normY - baseline.y) < baseline.centerY;
+    } else {
+      centered =
+        Math.abs(normX - provisionalCenter.current.x) <
+        provisionalCenter.current.centerX &&
+        Math.abs(normY - provisionalCenter.current.y) <
+        provisionalCenter.current.centerY;
+    }
 
     if (state === "WAITING_FOR_FIXATION") {
-      if (!centeredPreCalibration || !frameValid) {
-        notLookingTimer.current += dynamicRate.current;
-        if (notLookingTimer.current > INVALID_TIMEOUT) {
+
+      const enoughSamples = waitingCenterBuffer.current.length >= 10;
+
+      const xs = waitingCenterBuffer.current.map(p => p.x);
+      const ys = waitingCenterBuffer.current.map(p => p.y);
+
+      const meanX_pre = xs.reduce((a, b) => a + b, 0) / xs.length;
+      const meanY_pre = ys.reduce((a, b) => a + b, 0) / ys.length;
+
+      const jitterX_pre = Math.sqrt(variance(xs));
+      const jitterY_pre = Math.sqrt(variance(ys));
+      const jitter_pre = Math.max(jitterX_pre, jitterY_pre);
+
+      const MIN_CENTER = 0.05;
+      const CENTER_MULT = 2.2;
+
+      const centerX_pre = Math.max(MIN_CENTER, jitter_pre * CENTER_MULT);
+      const centerY_pre = Math.max(MIN_CENTER, jitter_pre * CENTER_MULT);
+
+      provisionalCenter.current = {
+        x: meanX_pre,
+        y: meanY_pre,
+        centerX: centerX_pre,
+        centerY: centerY_pre,
+      };
+
+      const centeredLocal =
+        Math.abs(normX - provisionalCenter.current.x) < provisionalCenter.current.centerX &&
+        Math.abs(normY - provisionalCenter.current.y) < provisionalCenter.current.centerY;
+
+      console.log({
+        //centeredPreCalibration,
+        stable,
+        meanX_pre,
+        meanY_pre,
+        centerX_pre,
+        centerY_pre,
+        jitter_pre,
+        fixationTimer: fixationTimer.current,
+      });
+
+      if (!(centeredLocal && stable)) {
+        fixationTimer.current += dynamicRate.current;
+
+        if (fixationTimer.current > INVALID_TIMEOUT) {
           abortCalibration("Not looking at the screen");
           return;
         }
+
         return;
       }
+
+      fixationTimer.current = 0;
+      waitingCenterBuffer.current = [];
+      setCalibrationState("COLLECTING");
+      return;
     }
 
     let direction: "CENTER" | "LEFT" | "RIGHT" | "UP" | "DOWN" | "NONE" = "NONE";
 
     if (frameValid) {
+
       const dx = baseline ? normX - baseline.x : normX;
       const dy = baseline ? normY - baseline.y : normY;
 
@@ -427,39 +532,64 @@ const dy = smoothed.current.y;
       const smoothDy =
         dyBuffer.current.reduce((a, b) => a + b, 0) / dyBuffer.current.length;
 
-      const normDx = smoothDx;
-      const normDy = smoothDy * 1.4;
+      const absDx = Math.abs(smoothDx);
+      const absDy = Math.abs(smoothDy);
 
-      const absDx = Math.abs(normDx);
-      const absDy = Math.abs(normDy);
+      const centerX = baseline ? baseline.centerX : provisionalCenter.current.centerX;
+      const centerY = baseline ? baseline.centerY : provisionalCenter.current.centerY;
 
-      const centerRatio = baseline ? baseline.centerX : 0.10;
+      const isCenter =
+        absDx < centerX &&
+        absDy < centerY;
 
-      if (!baseline && Math.abs(normX) < CENTER_X && Math.abs(normY) < CENTER_Y) {
-        // pre‑baseline CENTER: raw normX/normY near origin
+
+      if (isCenter) {
         direction = "CENTER";
-      } else if (absDx < centerRatio && absDy < centerRatio) {
-        // post‑baseline CENTER: smoothed dx/dy within jitter‑based center
-        direction = "CENTER";
-      } else if (absDy > absDx) {
-        direction = normDy < 0 ? "UP" : "DOWN";
       } else {
-        direction = normDx > 0 ? "LEFT" : "RIGHT";
+        if (absDx > absDy) {
+          direction = smoothDx > 0 ? "RIGHT" : "LEFT";
+        } else {
+          direction = smoothDy > 0 ? "DOWN" : "UP";
+        }
       }
-
     }
 
     if (direction !== lastDirection.current) {
       lastDirection.current = direction;
     }
 
-    let drift = 0;
+    const confidence = faceVisible && raw.valid ? 1 : 0.2;
+    const eyeOpenness = 1;
 
-    if (baseline) {
-      const dx = normX - baseline.x;
-      const dy = normY - baseline.y;
-      drift = Math.sqrt(dx * dx + dy * dy);
-    }
+    const eyesCovered =
+      !frameValid ||
+      eyeOpenness < 0.3 ||
+      confidence < 0.5;
+
+    console.log({
+      frameValid,
+      centered,
+      stable,
+      eyesCovered,
+      confidence,
+      direction,
+      baseline: !!baseline,
+    });
+
+    const fixation =
+      frameValid &&
+      centered &&
+      stable &&
+      !eyesCovered &&
+      confidence > 0.5 &&
+      (
+        !baseline ||
+        direction === "CENTER"
+      );
+
+    console.log({
+      fixation
+    });
 
     const frame = {
       valid: frameValid,
@@ -493,41 +623,32 @@ const dy = smoothed.current.y;
       lastFixation.current = frame.fixation;
     }
 
-    if (state === "WAITING_FOR_FIXATION") {
-      if (fixation) {
-        setCalibrationState("COLLECTING");
-        notLookingTimer.current = 0;
-      }
-      return;
-    }
-
-
     if (state === "COLLECTING") {
 
-      if (!fixation) {
+      if (fixation) {
 
-        notLookingTimer.current += dynamicRate.current;
+        baselineBuffer.current.push({
+          x: normX,
+          y: normY,
+        });
+
+        currentCountRef.current = baselineBuffer.current.length;
+
+        fixationTimer.current = 0;
+
+        if (baselineBuffer.current.length >= CALIBRATION_SAMPLES) {
+          completeCalibration();
+          return;
+        }
+
       } else {
 
-        notLookingTimer.current -= dynamicRate.current * 2;
-      }
+        fixationTimer.current += dynamicRate.current;
 
-      if (notLookingTimer.current < 0) {
-        notLookingTimer.current = 0;
-      }
-
-      if (notLookingTimer.current > INVALID_TIMEOUT) {
-        abortCalibration("Stopped cooperating during sampling");
-        return;
-      }
-
-      if (fixation && stable) {
-        baselineBuffer.current.push({ x: normX, y: normY });
-        currentCountRef.current = baselineBuffer.current.length;
-      }
-
-      if (baselineBuffer.current.length >= CALIBRATION_SAMPLES) {
-        completeCalibration();
+        if (fixationTimer.current > INVALID_TIMEOUT) {
+          abortCalibration("Fixation lost");
+          return;
+        }
       }
 
       return;
@@ -557,11 +678,6 @@ const dy = smoothed.current.y;
       if (downLooking) alertDown.current += dt;
       else alertDown.current -= dt * 2;
 
-      const eyesCovered =
-        !frameValid ||
-        frame.eyeOpenness < 0.3 ||
-        frame.confidence < 0.5;
-
       // EYES COVERED / invalid
       if (eyesCovered) alertEyes.current += dt;
       else alertEyes.current -= dt * 2;
@@ -574,11 +690,40 @@ const dy = smoothed.current.y;
       alertEyes.current = Math.max(0, alertEyes.current);
 
       // Thresholds (first version)
-      if (alertLeft.current > 1500) alerts.current.push("LOOKING_AWAY_LEFT");
-      if (alertRight.current > 1500) alerts.current.push("LOOKING_AWAY_RIGHT");
-      if (alertUp.current > 1500) alerts.current.push("LOOKING_AWAY_UP");
-      if (alertDown.current > 1500) alerts.current.push("LOOKING_AWAY_DOWN");
-      if (alertEyes.current > 800) alerts.current.push("EYES_COVERED");
+      if (
+        alertLeft.current > 1500 &&
+        !alerts.current.includes("LOOKING_AWAY_LEFT")
+      ) {
+        alerts.current.push("LOOKING_AWAY_LEFT");
+      }
+
+      if (
+        alertRight.current > 1500 &&
+        !alerts.current.includes("LOOKING_AWAY_RIGHT")
+      ) {
+        alerts.current.push("LOOKING_AWAY_RIGHT");
+      }
+
+      if (
+        alertUp.current > 1500 &&
+        !alerts.current.includes("LOOKING_AWAY_UP")
+      ) {
+        alerts.current.push("LOOKING_AWAY_UP");
+      }
+
+      if (
+        alertDown.current > 1500 &&
+        !alerts.current.includes("LOOKING_AWAY_DOWN")
+      ) {
+        alerts.current.push("LOOKING_AWAY_DOWN");
+      }
+
+      if (
+        alertEyes.current > 800 &&
+        !alerts.current.includes("EYES_COVERED")
+      ) {
+        alerts.current.push("EYES_COVERED");
+      }
     }
 
   }, [results, calibrationState]);

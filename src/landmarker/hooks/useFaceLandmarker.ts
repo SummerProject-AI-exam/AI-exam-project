@@ -116,6 +116,7 @@ export function useFaceLandmarker(
 
         const detection = landmarker.detectForVideo(video, now);
         //console.log("RAW LANDMARKER OUTPUT:", detection);
+        //console.log("[LANDMARKER] landmarkCount:", detection?.faceLandmarks?.length);
 
         const safeFrame = cheatingSafeFilter(detection, now);
         const frameToUse = safeFrame ?? detection;
