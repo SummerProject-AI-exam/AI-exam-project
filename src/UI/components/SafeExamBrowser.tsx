@@ -38,17 +38,17 @@ function ExamPortal() {
         if (!userInsideSEB || examSubmitted) return;
 
         const timer = setInterval(() => {
-            setSecondsLeft((prev) => {
-                if (prev <= 1) {
-                    setExamSubmitted(true);
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setSecondsLeft((prev) => Math.max(0, prev - 1));
         }, 1000);
 
         return () => clearInterval(timer);
     }, [userInsideSEB, examSubmitted]);
+
+    useEffect(() => {
+        if (secondsLeft <= 0 && userInsideSEB && !examSubmitted) {
+            setExamSubmitted(true);
+        }
+    }, [secondsLeft, userInsideSEB, examSubmitted]);
 
     const formatTime = (timeInSeconds: number) => {
         const minutes = Math.floor(timeInSeconds / 60);
