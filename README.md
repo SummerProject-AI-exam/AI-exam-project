@@ -175,6 +175,25 @@ and whether each student has submitted the assignment.
 
 ---
 
+## Exam Report
+
+The Exam Report provides teachers with an overview of examination
+ performance, including:
+
+- Course selection
+- Exam selection
+- Submission-status filtering
+- Total students
+- Total exams
+- Submitted examinations
+- Missing submissions
+- Student examination summary
+- Detailed examination results
+- Scores and submission information
+
+
+---
+
 
 
 
