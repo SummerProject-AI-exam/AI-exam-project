@@ -321,6 +321,28 @@ The platform follows a web client/server architecture.
 
 ---
 
+## Database Structure
+
+The current Supabase database includes entities for:
+
+- Teacher
+- Student
+- Course
+- Enrollment
+- Assignment
+- assignment_questions
+- assignment_submissions
+- student_answers
+- Exam
+- Multiple_Choice_Questions
+- Coding_Questions
+- exam_submissions
+- exam_answers
+- Exam_Sessions
+- Fraud_Events
+- Risk_Scores
+
+
 ## How to Run 
 1. ... 
 2. ...
