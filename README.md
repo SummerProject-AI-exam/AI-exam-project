@@ -116,6 +116,21 @@ Take a quick look at the AI Exam Platform in action.
 - Filter reports by course, student,  assignment, event type, and risk level
 - Inspect individual fraud-event details
 
+## Student Features
+
+- Student authentication and dashboard
+- Browse available courses
+- Enroll in courses
+- View enrolled courses
+- View assignments
+- Submit assignments
+- View assignment results
+- Participate in scheduled examinations
+- Automatic examination scoring where applicable
+- Review submitted examination results
+- View total marks and received marks
+
+
 
 
 ## Tech Stack
