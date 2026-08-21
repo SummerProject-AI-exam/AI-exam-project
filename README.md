@@ -170,6 +170,12 @@ The Assignment Report provides:
 - Student scores
 - Submission dates
 
+The detailed report allows teachers to see individual assignment records
+and whether each student has submitted the assignment.
+
+---
+
+
 
 
 ## Tech Stack
