@@ -220,6 +220,15 @@ The report provides summary information such as:
 
 
 
+##  Student Fraud Summary
+
+Teachers can see the number of recorded monitoring events for each
+student, including their email address and risk-level event counts.
+
+The summary helps teachers quickly identify students with a higher
+number of suspicious monitoring events.
+
+
 
 
 
