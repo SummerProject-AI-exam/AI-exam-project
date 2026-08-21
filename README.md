@@ -150,6 +150,27 @@ The monitoring events are stored in the Fraud_Events table and can be
 
 ---
 
+###  Reporting
+
+The platform provides separate reporting areas for teachers.
+
+## Assignment Report
+
+The Assignment Report provides:
+
+- Course selection
+- Assignment selection
+- Submission-status filtering
+- Total students
+- Total assignments
+- Submitted assignments
+- Missing submissions
+- Student submission summary
+- Detailed assignment submission information
+- Student scores
+- Submission dates
+
+
 
 ## Tech Stack
 - Frontend: React
