@@ -98,6 +98,25 @@ Take a quick look at the AI Exam Platform in action.
 
 ---
 
+## Key Features
+
+## Teacher Features
+
+- Teacher authentication and dashboard
+- Create and manage courses
+- View active and previous courses
+- Create and manage assignments
+- Create and manage examinations
+- Add and manage examination questions
+- View enrolled students
+- Export enrolled student lists as CSV
+- View assignment reports
+- View examination reports
+- Review fraud/monitoring reports
+- Filter reports by course, student,  assignment, event type, and risk level
+- Inspect individual fraud-event details
+
+
 
 ## Tech Stack
 - Frontend: React
