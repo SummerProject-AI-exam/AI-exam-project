@@ -130,7 +130,25 @@ Take a quick look at the AI Exam Platform in action.
 - Review submitted examination results
 - View total marks and received marks
 
+## Examination Monitoring
 
+The platform records examination-related monitoring events, including:
+
+- Window blur/focus events
+- Camera readiness/blocking events
+- Face detection events
+- Multiple-face detection
+- No-face detection
+- Camera-off events
+- Gaze-related events
+- Head/pose monitoring events
+- Gaze calibration events
+- Other examination monitoring events
+
+The monitoring events are stored in the Fraud_Events table and can be
+ reviewed through the teacher's Fraud Report.
+
+---
 
 
 ## Tech Stack
