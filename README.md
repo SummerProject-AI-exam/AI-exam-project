@@ -194,6 +194,32 @@ The Exam Report provides teachers with an overview of examination
 
 ---
 
+## Fraud Report
+
+The Fraud Report provides a historical overview of examination
+monitoring events.
+
+## Filters
+
+Teachers can filter the report by:
+
+- Course
+- Student
+- Event Type
+- Risk Level
+
+
+## Summary
+
+The report provides summary information such as:
+
+- Total students
+- Total fraud/monitoring events
+- High-risk events
+- Average confidence
+
+
+
 
 
 
