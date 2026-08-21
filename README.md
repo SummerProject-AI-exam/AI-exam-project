@@ -90,6 +90,15 @@ events through dedicated reporting pages.
 
 ---
 
+## 🎥 Project Demo
+
+Take a quick look at the AI Exam Platform in action.
+
+[▶️ **Watch the Project Demo**](YOUR_DEMO_VIDEO_LINK)
+
+---
+
+
 ## Tech Stack
 - Frontend: React
 - Backend: Node.js
