@@ -250,6 +250,49 @@ A **View** button can be used to inspect the JSON details associated
 
 ---
 
+## System Architecture
+
+The platform follows a web client/server architecture.
+
+
+                    ┌─────────────────────────┐
+
+                    │       Web Browser       │
+
+                    │      React + Vite       │
+
+                    └────────────┬────────────┘
+
+                                 │
+
+                                 │ HTTP / API
+
+                                 ▼
+
+                    ┌─────────────────────────┐
+
+                    │       Node.js API       │
+
+                    │        Express.js       │
+
+                    └────────────┬────────────┘
+
+                                 │
+
+                ┌────────────────┴────────────────┐
+
+                │                                 │
+
+                ▼                                 ▼
+
+       ┌─────────────────┐              ┌──────────────────┐
+
+       │    Supabase     │              │ Monitoring / AI  │
+
+       │ PostgreSQL/Auth │              │ related services │
+
+       └─────────────────┘              └──────────────────┘
+
 
 ## Tech Stack
 - Frontend: React
