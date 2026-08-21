@@ -229,7 +229,26 @@ The summary helps teachers quickly identify students with a higher
 number of suspicious monitoring events.
 
 
+## Detailed Fraud Report
 
+The detailed report displays:
+
+- Student
+- Student email
+- Event type
+- Risk level
+- Event date and time
+- Event details
+
+A **View** button can be used to inspect the JSON details associated
+ with an individual event.
+
+**Note:** Fraud-event risk levels are assigned according to the
+ project's monitoring-event classification.
+
+ 
+
+---
 
 
 ## Tech Stack
