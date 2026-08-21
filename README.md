@@ -75,11 +75,20 @@ export default defineConfig([
 =======
 # AI-exam-project
  
-## Project Goal 
-Build a web-based system for:
-- weekly assignments
-- exam monitoring
-- cheating detection (AI + browser tracking)
+> An intelligent examination platform for managing courses, assignments,
+> examinations, automated assessment, and examination monitoring.
+
+The **AI Exam Platform** is a web-based examination system designed to
+provide teachers and students with a centralized environment for
+creating and managing courses, assignments, and exams.
+
+The platform also provides examination monitoring capabilities,
+including window focus/blur monitoring, camera and face monitoring,
+gaze-related monitoring, and fraud-event reporting. Teachers can review
+student submissions, examination results, and historical monitoring
+events through dedicated reporting pages.
+
+---
 
 ## Tech Stack
 - Frontend: React
