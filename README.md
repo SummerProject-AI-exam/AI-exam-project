@@ -295,10 +295,31 @@ The platform follows a web client/server architecture.
 
 
 ## Tech Stack
-- Frontend: React
-- Backend: Node.js
-- Database: Supabase
-- AI: Face landmarker
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- React Router
+- HTML/CSS
+- MediaPipe-related browser monitoring      components
+
+
+### Backend
+
+- Node.js
+- Express.js
+- TypeScript
+- REST API endpoints
+
+### Database
+
+- Supabase
+- PostgreSQL
+
+
+---
 
 ## How to Run 
 1. ... 
