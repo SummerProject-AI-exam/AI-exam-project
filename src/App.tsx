@@ -12,6 +12,16 @@ import AssignmentPage from './UI/pages/AssignmentPage';
 import AssignmentDetailsPage from './UI/pages/AssignmentDetailsPage';
 import ExamPage from './UI/pages/ExamPage';
 import ExamDetailsPage from './UI/pages/ExamDetailsPage';
+import StudentAvailableCoursesPage from './UI/pages/StudentAvailableCoursesPage';
+import StudentCoursesPage from './UI/pages/StudentCoursesPage';
+import StudentCourseDetailsPage from './UI/pages/StudentCourseDetailsPage';
+import StudentAssignmentDetailsPage from './UI/pages/StudentAssignmentDetailsPage';
+import StudentExamDetailsPage from './UI/pages/StudentExamDetailsPage';
+import StudentResultsPage from './UI/pages/StudentResultsPage';
+import ReportsPage from './UI/pages/ReportsPage';
+import AssignmentReportPage from './UI/pages/AssignmentReportPage';
+import ExamReportPage from './UI/pages/ExamReportPage';
+import FraudReportPage from './UI/pages/FraudReportPage';
 
 import FaceLandmarkerViewer from "./landmarker/components/FaceLandmarkerViewer";
 import ReadinessTest from "./pages/ReadinessTest";
@@ -21,6 +31,9 @@ import './App.css';
 import GazeTestPage from './pages/GazeTest';
 import CalibrationPage from './pages/CalibrationPage';
 import GazeAlertsPage from './pages/GazeAlertsPage';
+
+
+
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -76,7 +89,17 @@ function App() {
         <Route path="/teacher/assignment/:id" element={<AssignmentDetailsPage />} />
         <Route path="/teacher/course/:id/exams" element={<ExamPage />} />
         <Route path="/teacher/exam/:id" element={<ExamDetailsPage />} />
+        <Route path="/teacher/reports" element={<ReportsPage />} />
+        <Route path="/teacher/reports/assignment-report" element={<AssignmentReportPage />} />
+        <Route path="/teacher/reports/exam-report" element={<ExamReportPage />} />
+        <Route path="/teacher/reports/fraud-report" element={<FraudReportPage />} />
         <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/student/available-courses" element={<StudentAvailableCoursesPage />} />
+        <Route path="/student/courses" element={<StudentCoursesPage />} />
+        <Route path="/student/course/:id" element={<StudentCourseDetailsPage />} />
+        <Route path="/student/assignment/:id" element={<StudentAssignmentDetailsPage />} />  
+        <Route path="/student/exam/:id" element={<StudentExamDetailsPage />} /> 
+        <Route path="/student/results"  element={<StudentResultsPage />} />
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
         <Route path="/focus-monitor" element={<MonitoringDemo sessionId="" />} />
