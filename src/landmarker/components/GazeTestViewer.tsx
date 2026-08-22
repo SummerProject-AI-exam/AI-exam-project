@@ -127,7 +127,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         margin: "0 auto",
       }}
     >
-      {/* MODEL LOADING OVERLAY */}
+      {/* MODEL LOADING */}
       {!results && (
         <div
           style={{
@@ -146,7 +146,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         </div>
       )}
 
-      {/* VIDEO + FACE MESH */}
+      {/* VIDEO + FACE LANDMARKER */}
       <div
         ref={videoContainerRef}
         style={{
@@ -182,7 +182,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
           }}
         />
 
-        {/* DOT + COUNTDOWN + SAMPLE COUNT */}
+        {/* DOT + COUNTDOWN + SAMPLE COUNTING */}
         {(isCalibrating || countdown !== null) && (
           <>
             {/* DOT */}
@@ -220,7 +220,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
               </div>
             )}
 
-            {/* SAMPLE COUNT */}
+            {/* SAMPLE COUNTING */}
             {isCalibrating && (
               <div
                 style={{
@@ -242,7 +242,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         )}
       </div>
 
-      {/* SAMPLE LOG BOX */}
+      {/* SAMPLE INFO */}
       <pre
         style={{
           position: "absolute",

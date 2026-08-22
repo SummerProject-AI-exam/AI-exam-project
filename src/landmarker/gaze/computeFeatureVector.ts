@@ -9,9 +9,8 @@ export interface FeatureVector {
 }
 
 export function computeFeatureVector(
-    features: GazeFeatures
-): FeatureVector 
-{
+  features: GazeFeatures
+): FeatureVector {
   if (!features.valid) {
     return {
       x: 0,
@@ -24,10 +23,10 @@ export function computeFeatureVector(
 
   const { gazeX, gazeY, leftEyeOpen, rightEyeOpen } = features;
 
-  const SCALE = 50; // empirically correct for FaceLandmarker eyelid-based gaze
+  const SCALE = 50;
 
-const x = Math.max(-1, Math.min(1, gazeX * SCALE));
-const y = Math.max(-1, Math.min(1, gazeY * SCALE));
+  const x = Math.max(-1, Math.min(1, gazeX * SCALE));
+  const y = Math.max(-1, Math.min(1, gazeY * SCALE));
 
   return {
     x,

@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useWebcam } from "../hooks/useWebcam";
 import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 import { useGaze } from "../hooks/useGaze";
-import { useFraudGazeAlerts } from "../hooks/useFraudGazeAlerts";
-import { useAlertsGaze } from "../alerts/useAlertsGaze";
 import { useGazeAlerts } from "../hooks/useGazeAlerts";
 
 export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
@@ -34,13 +32,35 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
   const [startExam, setStartExam] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
 
-  const { alert: gazeAlert, warmupCountdown } = useGazeAlerts(
-    calibration.state,
-    baseline,
-    gazeFrame,
-    dynamicRate,
-    startExam
-  );
+/*   console.log("[GAZE ALERT INPUT]", {
+  state: calibration.state,
+  baseline,
+  gazeFrame,
+  dynamicRate,
+  startExam,
+  results,
+}); */
+
+/* const { alert: gazeAlert, warmupCountdown } = useGazeAlerts(
+  calibration.state,
+  baseline,
+  gazeFrame,
+  dynamicRate,
+  startExam,
+  results,
+  sessionId
+); */
+
+const { alert: gazeAlert, warmupCountdown } = useGazeAlerts(
+  calibration.state,
+  baseline,
+  gazeFrame,
+  startExam,
+  results,
+  sessionId,
+  dynamicRate
+);
+
 
   useEffect(() => {
     const saved = localStorage.getItem("gazeBaseline");
@@ -56,15 +76,6 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
   }, []);
 
   const monitoringActive = calibration.state === "MONITORING";
-
-  const monitoring = {
-    valid: gazeFrame.valid,
-    direction: gazeFrame.direction,
-    drift: gazeFrame.drift,
-  };
-
-  useFraudGazeAlerts(monitoring, gazeFrame, baseline, sessionId);
-  useAlertsGaze(gazeAlert, sessionId);
 
   useEffect(() => {
     if (countdown === null) return;
@@ -98,7 +109,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
         muted
       />
 
-      {/* FACE MESH */}
+      {/* FACE LANDMARKER */}
       <canvas
         ref={canvasRef}
         width={640}
@@ -115,7 +126,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
         }}
       />
 
-      {/* UI OVERLAY */}
+      {/* UI */}
       <div
         style={{
           position: "absolute",
@@ -131,7 +142,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           minWidth: "260px",
         }}
       >
-        {/* ⭐ Start Exam Button */}
+        {/* START EXAM BUTTON */}
         {!startExam && countdown === null && (
           <button
             onClick={() => setCountdown(3)}
@@ -149,14 +160,14 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           </button>
         )}
 
-        {/* ⭐ Visible countdown */}
+        {/* COUNTDOWN */}
         {countdown !== null && (
           <div style={{ fontWeight: "bold", marginBottom: "10px" }}>
             Exam starting in: {countdown}
           </div>
         )}
 
-        {/* ⭐ Warm-up countdown */}
+        {/* WARM-UP COUNTDOWN */}
         {startExam && warmupCountdown !== null && (
           <div style={{ fontWeight: "bold", marginBottom: "10px" }}>
             Warm-up: {warmupCountdown}
@@ -167,7 +178,7 @@ export function GazeAlertViewer({ sessionId }: { sessionId: string }) {
           Monitoring: {monitoringActive ? "Active" : "Inactive"}
         </div>
 
-        {/* ⭐ REAL GAZE DATA */}
+        {/* GAZE DATA */}
         <div>Direction: {gazeFrame.direction}</div>
         <div>Drift: {gazeFrame.drift.toFixed(3)}</div>
         <div>Stable: {gazeFrame.stable ? "yes" : "no"}</div>

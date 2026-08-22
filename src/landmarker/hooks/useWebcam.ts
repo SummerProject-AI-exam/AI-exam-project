@@ -19,10 +19,10 @@ export function useWebcam() {
         videoRef.current!.onloadedmetadata = () => resolve(true);
       });
 
-      // decoding starts
+      // decoding starting
       await videoRef.current.play();
 
-      // Readiness diagnostic
+      // Readiness diagnosting
       console.log("readyState:", videoRef.current.readyState);
       console.log("videoWidth:", videoRef.current.videoWidth);
       console.log("videoHeight:", videoRef.current.videoHeight);

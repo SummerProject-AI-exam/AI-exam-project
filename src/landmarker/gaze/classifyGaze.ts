@@ -14,8 +14,6 @@ export function classifyGazeDirection(
 ): GazeDirection {
   if (confidence < 0.3) return "INVALID";
 
-  // If MediaPipe loses landmarks but confidence is high,
-  // treat it as CENTER during calibration.
   if (!valid) return "CENTER";
 
   const H = 0.03;

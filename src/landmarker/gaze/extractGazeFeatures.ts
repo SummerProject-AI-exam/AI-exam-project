@@ -1,12 +1,11 @@
 import type { FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 
 export interface GazeFeatures {
-  gazeX: number;
-  gazeY: number;
-
+  gazeX: number;        
+  gazeY: number;        
   leftEyeOpen: number;
   rightEyeOpen: number;
-
+  eyeOpenness: number;
   valid: boolean;
 }
 
@@ -26,6 +25,7 @@ export function extractGazeFeatures(
       gazeY: 0,
       leftEyeOpen: 0,
       rightEyeOpen: 0,
+      eyeOpenness: 0,
       valid: false,
     };
   }
@@ -44,34 +44,54 @@ export function extractGazeFeatures(
   const RIGHT_UPPER = lm[386];
   const RIGHT_LOWER = lm[374];
 
-  // Eye center (corner midpoint)
+  // Iris centers (diagnostic only)
+  const LEFT_IRIS = lm[468];
+  const RIGHT_IRIS = lm[473];
+
+  // Eye centers
   const leftEyeCenter = midpoint(LEFT_EYE_LEFT, LEFT_EYE_RIGHT);
   const rightEyeCenter = midpoint(RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT);
 
-  // Eyelid midpoint
-  const leftLidCenter = midpoint(LEFT_UPPER, LEFT_LOWER);
-  const rightLidCenter = midpoint(RIGHT_UPPER, RIGHT_LOWER);
-
   // Eye openness
-  const leftEyeOpen = Math.abs(LEFT_UPPER.y - LEFT_LOWER.y);
-  const rightEyeOpen = Math.abs(RIGHT_UPPER.y - RIGHT_LOWER.y);
+  const leftEyeWidth = Math.hypot(
+    LEFT_EYE_RIGHT.x - LEFT_EYE_LEFT.x,
+    LEFT_EYE_RIGHT.y - LEFT_EYE_LEFT.y
+  );
 
-  // Current gaze estimate (identical to the existing implementation)
-  const gazeX =
-    ((leftEyeCenter.x - leftLidCenter.x) +
-      (rightEyeCenter.x - rightLidCenter.x)) /
-    2;
+  const rightEyeWidth = Math.hypot(
+    RIGHT_EYE_RIGHT.x - RIGHT_EYE_LEFT.x,
+    RIGHT_EYE_RIGHT.y - RIGHT_EYE_LEFT.y
+  );
 
-  const gazeY =
-    ((leftEyeCenter.y - leftLidCenter.y) +
-      (rightEyeCenter.y - rightLidCenter.y)) /
-    2;
+  const leftEyeOpen =
+    leftEyeWidth > 0
+      ? Math.abs(LEFT_UPPER.y - LEFT_LOWER.y) / leftEyeWidth
+      : 0;
+
+  const rightEyeOpen =
+    rightEyeWidth > 0
+      ? Math.abs(RIGHT_UPPER.y - RIGHT_LOWER.y) / rightEyeWidth
+      : 0;
+
+  const eyeOpenness = (leftEyeOpen + rightEyeOpen) / 2;
+
+  const rawX =
+    ((LEFT_IRIS.x - leftEyeCenter.x) +
+      (RIGHT_IRIS.x - rightEyeCenter.x)) / 2;
+
+  const rawY =
+    ((LEFT_IRIS.y - leftEyeCenter.y) +
+      (RIGHT_IRIS.y - rightEyeCenter.y)) / 2;
+
+  const gazeX = rawX;
+  const gazeY = rawY;
 
   return {
     gazeX,
     gazeY,
     leftEyeOpen,
     rightEyeOpen,
+    eyeOpenness,
     valid: true,
   };
 }

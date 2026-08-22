@@ -21,7 +21,7 @@ const BASE_CALIB_RATE = 1000 / 6;
 const BASE_NORMAL_RATE = 1000 / 10;
 
 const STABILITY_WINDOW = 5;
-const SMOOTH_WINDOW = 1;
+const SMOOTH_WINDOW = 3;
 
 const CENTER_X = 0.08;
 const CENTER_Y = 0.08;
@@ -130,25 +130,25 @@ export function useGaze(results: any) {
   const dyBuffer = useRef<number[]>([]);
 
   const gazeFrame = useRef({
-  valid: false,
-  fixation: false,
-  stable: false,
-  centered: false,
-  eyesOpen: true,
-  direction: "NONE" as
-    | "CENTER"
-    | "LEFT"
-    | "RIGHT"
-    | "UP"
-    | "DOWN"
-    | "NONE",
-  drift: 0,
-  confidence: 0,
-  vectorMagnitude: 0,
-  eyeOpenness: 1,
-  x: 0,
-  y: 0,
-});
+    valid: false,
+    fixation: false,
+    stable: false,
+    centered: false,
+    eyesOpen: true,
+    direction: "NONE" as
+      | "CENTER"
+      | "LEFT"
+      | "RIGHT"
+      | "UP"
+      | "DOWN"
+      | "NONE",
+    drift: 0,
+    confidence: 0,
+    vectorMagnitude: 0,
+    eyeOpenness: 1,
+    x: 0,
+    y: 0,
+  });
 
   const variance = (arr: number[]) => {
     if (arr.length === 0) return 0;
@@ -212,37 +212,37 @@ export function useGaze(results: any) {
     const jitterY = Math.sqrt(variance(ys));
     const jitter = Math.max(jitterX, jitterY);
 
-const CENTER_MULT = 2.2;
-const HORIZ_MULT = 2.0;
-const VERT_MULT = 4.0;
-const DRIFT_MULT = 2.0;
+    const CENTER_MULT = 2.2;
+    const HORIZ_MULT = 2.0;
+    const VERT_MULT = 4.0;
+    const DRIFT_MULT = 2.0;
 
-// Universal minimums (normalized coordinates)
-const MIN_CENTER_X = 0.045;
-const MIN_CENTER_Y = 0.050;
 
-const MIN_HORIZONTAL = 0.040;
-const MIN_VERTICAL = 0.070;
+    const MIN_CENTER_X = 0.08;
+    const MIN_CENTER_Y = 0.08;
 
-const MIN_DRIFT = 0.040;
+    const MIN_HORIZONTAL = 0.040;
+    const MIN_VERTICAL = 0.10;
 
-const centerX = Math.max(MIN_CENTER_X, jitter * CENTER_MULT);
-const centerY = Math.max(MIN_CENTER_Y, jitter * CENTER_MULT);
+    const MIN_DRIFT = 0.040;
 
-const horizontalThreshold = Math.max(
-  MIN_HORIZONTAL,
-  jitter * HORIZ_MULT
-);
+    const centerX = Math.max(MIN_CENTER_X, jitter * CENTER_MULT);
+    const centerY = Math.max(MIN_CENTER_Y, jitter * CENTER_MULT);
 
-const verticalThreshold = Math.max(
-  MIN_VERTICAL,
-  jitter * VERT_MULT
-);
+    const horizontalThreshold = Math.max(
+      MIN_HORIZONTAL,
+      jitter * HORIZ_MULT
+    );
 
-const driftThreshold = Math.max(
-  MIN_DRIFT,
-  jitter * DRIFT_MULT
-);
+    const verticalThreshold = Math.max(
+      MIN_VERTICAL,
+      jitter * VERT_MULT
+    );
+
+    const driftThreshold = Math.max(
+      MIN_DRIFT,
+      jitter * DRIFT_MULT
+    );
 
     console.log("BASELINE:",
       "meanX:", meanX.toFixed(3),
@@ -541,19 +541,19 @@ const driftThreshold = Math.max(
     if (frameValid) {
 
       const referenceX = baseline
-    ? baseline.x
-    : provisionalCenter.current.x;
+        ? baseline.x
+        : provisionalCenter.current.x;
 
-const referenceY = baseline
-    ? baseline.y
-    : provisionalCenter.current.y;
+      const referenceY = baseline
+        ? baseline.y
+        : provisionalCenter.current.y;
 
-const dx = normX - referenceX;
-const dy = normY - referenceY;
+      const dx = normX - referenceX;
+      const dy = normY - referenceY;
       dxBuffer.current.push(dx);
       dyBuffer.current.push(dy);
-      if (dxBuffer.current.length > 3) dxBuffer.current.shift();
-      if (dyBuffer.current.length > 3) dyBuffer.current.shift();
+      if (dxBuffer.current.length > 5) dxBuffer.current.shift();
+      if (dyBuffer.current.length > 5) dyBuffer.current.shift();
 
       const smoothDx =
         dxBuffer.current.reduce((a, b) => a + b, 0) / dxBuffer.current.length;
@@ -566,55 +566,56 @@ const dy = normY - referenceY;
       const centerX = baseline ? baseline.centerX : provisionalCenter.current.centerX;
       const centerY = baseline ? baseline.centerY : provisionalCenter.current.centerY;
 
-const enterCenterX = centerX * CENTER_ENTER_MULT;
-const enterCenterY = centerY * CENTER_ENTER_MULT;
+      const enterCenterX = centerX * CENTER_ENTER_MULT;
+      const enterCenterY = centerY * CENTER_ENTER_MULT;
 
-const exitCenterX = centerX * CENTER_EXIT_MULT;
-const exitCenterY = centerY * CENTER_EXIT_MULT;
+      const exitCenterX = centerX * CENTER_EXIT_MULT;
+      const exitCenterY = centerY * CENTER_EXIT_MULT;
 
-const wasCenter = lastDirection.current === "CENTER";
+      const wasCenter = lastDirection.current === "CENTER";
 
-const inCenter = wasCenter
-  ? absDx < exitCenterX && absDy < exitCenterY
-  : absDx < enterCenterX && absDy < enterCenterY;
+      const inCenter = wasCenter
+        ? absDx < exitCenterX && absDy < exitCenterY
+        : absDx < enterCenterX && absDy < enterCenterY;
 
-if (inCenter) {
-  direction = "CENTER";
-} else if (absDx > absDy) {
-  direction = smoothDx > 0 ? "RIGHT" : "LEFT";
-} else {
-  direction = smoothDy > 0 ? "DOWN" : "UP";
-}
+      if (inCenter) {
+        direction = "CENTER";
+      } else if (absDx > absDy) {
+        direction = smoothDx > 0 ? "LEFT" : "RIGHT";   // flipped
+      } else {
+        direction = smoothDy > 0 ? "DOWN" : "UP";      // flipped
+      }
+
     }
 
- if (direction !== lastDirection.current) {
-  console.log("[GAZE DIR]", {
-    from: lastDirection.current,
-    to: direction,
+    if (direction !== lastDirection.current) {
+      /*   console.log("[GAZE DIR]", {
+          from: lastDirection.current,
+          to: direction,
+      
+          x: normX.toFixed(3),
+          y: normY.toFixed(3),
+      
+          dx: dxBuffer.current.length
+            ? (
+                dxBuffer.current.reduce((a, b) => a + b, 0) /
+                dxBuffer.current.length
+              ).toFixed(3)
+            : "0",
+      
+          dy: dyBuffer.current.length
+            ? (
+                dyBuffer.current.reduce((a, b) => a + b, 0) /
+                dyBuffer.current.length
+              ).toFixed(3)
+            : "0",
+      
+          centerX: (baseline?.centerX ?? provisionalCenter.current.centerX).toFixed(3),
+          centerY: (baseline?.centerY ?? provisionalCenter.current.centerY).toFixed(3),
+        }); */
 
-    x: normX.toFixed(3),
-    y: normY.toFixed(3),
-
-    dx: dxBuffer.current.length
-      ? (
-          dxBuffer.current.reduce((a, b) => a + b, 0) /
-          dxBuffer.current.length
-        ).toFixed(3)
-      : "0",
-
-    dy: dyBuffer.current.length
-      ? (
-          dyBuffer.current.reduce((a, b) => a + b, 0) /
-          dyBuffer.current.length
-        ).toFixed(3)
-      : "0",
-
-    centerX: (baseline?.centerX ?? provisionalCenter.current.centerX).toFixed(3),
-    centerY: (baseline?.centerY ?? provisionalCenter.current.centerY).toFixed(3),
-  });
-
-  lastDirection.current = direction;
-}
+      lastDirection.current = direction;
+    }
 
     const confidence = faceVisible && raw.valid ? 1 : 0.2;
     const eyeOpenness = 1;

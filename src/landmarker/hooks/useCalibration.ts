@@ -75,7 +75,7 @@ const fixation = baseline ? gaze.fixation : preCalibrationFixation;
   }, []);
 
   const startCalibration = useCallback(() => {
-    gaze.reset(); // clear smoothing + stability history
+    gaze.reset();
 
     baselineBuffer.current = [];
     currentCountRef.current = 0;

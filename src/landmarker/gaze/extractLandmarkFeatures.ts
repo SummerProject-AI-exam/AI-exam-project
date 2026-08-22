@@ -19,6 +19,7 @@ export interface LandmarkFeatures {
 
   leftEyeOpen: number;
   rightEyeOpen: number;
+  eyeOpenness: number;
 
   valid: boolean;
 }
@@ -46,6 +47,7 @@ export function extractLandmarkFeatures(
       rightLowerEyelid: null,
       leftEyeOpen: 0,
       rightEyeOpen: 0,
+      eyeOpenness: 0,
       valid: false,
     };
   }
@@ -64,7 +66,7 @@ export function extractLandmarkFeatures(
   const RIGHT_UPPER = lm[386];
   const RIGHT_LOWER = lm[374];
 
-  // Eye centers (corner midpoint)
+  // Eye centers (eyelid midpoint)
   const leftEyeCenter = midpoint(LEFT_EYE_LEFT, LEFT_EYE_RIGHT);
   const rightEyeCenter = midpoint(RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT);
 
@@ -72,12 +74,13 @@ export function extractLandmarkFeatures(
   const leftEyeOpen = Math.abs(LEFT_UPPER.y - LEFT_LOWER.y);
   const rightEyeOpen = Math.abs(RIGHT_UPPER.y - RIGHT_LOWER.y);
 
-  // ---------- GAZE DIRECTION ----------
-  // Horizontal gaze: compare eye center to eyelid midpoint
+  const eyeOpenness =
+  (leftEyeOpen + rightEyeOpen) / 2;
+
+  // Horizontal gaze direction: compare eye center to eyelid midpoint
   const leftLidCenter = midpoint(LEFT_UPPER, LEFT_LOWER);
   const rightLidCenter = midpoint(RIGHT_UPPER, RIGHT_LOWER);
 
-  // Gaze vector = difference between eye center and lid center
   const gazeX =
     ((leftEyeCenter.x - leftLidCenter.x) +
       (rightEyeCenter.x - rightLidCenter.x)) /
@@ -107,6 +110,7 @@ export function extractLandmarkFeatures(
 
     leftEyeOpen,
     rightEyeOpen,
+    eyeOpenness,
 
     valid: true,
   };

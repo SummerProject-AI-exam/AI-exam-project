@@ -99,7 +99,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         margin: "0 auto",
       }}
     >
-      {/* MODEL LOADING OVERLAY */}
+      {/* LOADING */}
       {!results && (
         <div
           style={{
@@ -118,7 +118,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         </div>
       )}
 
-      {/* VIDEO + FACE MESH */}
+      {/* VIDEO + FACE LANDMARKER */}
       <div
         ref={videoContainerRef}
         style={{

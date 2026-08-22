@@ -7,7 +7,8 @@ export function smoothVector(
   alphaX = 0.25,
   alphaY = 0.15
 ): GazeVector {
-  // ---------- INVALID HANDLING ----------
+
+  // if not valid
   if (!current.valid) {
     out.x = previous.x;
     out.y = previous.y;
@@ -21,7 +22,7 @@ export function smoothVector(
     return out;
   }
 
-  // ---------- FIRST VALID FRAME ----------
+  // first valid frame
   if (!previous.valid) {
     out.x = current.x;
     out.y = current.y;
@@ -35,7 +36,7 @@ export function smoothVector(
     return out;
   }
 
-  // ---------- SMOOTHING ----------
+  // smoothing
   out.x = previous.x * (1 - alphaX) + current.x * alphaX;
   out.y = previous.y * (1 - alphaY) + current.y * alphaY;
   out.valid = true;

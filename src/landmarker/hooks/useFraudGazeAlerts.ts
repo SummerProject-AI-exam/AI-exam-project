@@ -40,12 +40,11 @@ export function useFraudGazeAlerts(
 
     const now = performance.now();
 
-    // ⭐ Map new gazeFrame fields
     const stability = gazeFrame.stable ? 1 : 0;
     const confidence = gazeFrame.confidence;
-    const magnitude = gazeFrame.vectorMagnitude;
 
-    // ---------- DOWN LOOKING ----------
+
+    // down
     const normalDown =
       monitoring.direction === "DOWN" &&
       monitoring.drift < baseline.centerY * 1.2 &&
@@ -61,30 +60,30 @@ export function useFraudGazeAlerts(
       monitoring.drift > baseline.verticalThreshold * 1.8 &&
       confidence > 0.5;
 
-    // ---------- LEFT / RIGHT ----------
+    // left and right
     const lookingAway =
       monitoring.direction === "LEFT" ||
       monitoring.direction === "RIGHT";
 
-    // ---------- UP ----------
+    // up
     const suspiciousUp =
       monitoring.direction === "UP" &&
       monitoring.drift > baseline.verticalThreshold &&
       confidence > 0.5;
 
-    // ---------- DRIFT ----------
+    // drift
     const driftTooHigh =
       monitoring.drift > baseline.driftThreshold;
 
-    // ---------- STABILITY ----------
+    // stable
     const unstable =
       stability < 0.2;
 
-    // ---------- EYES COVERED ----------
+    // eyes covered
     const eyesCovered =
       confidence < 0.3;
 
-    // ---------- SUSPICIOUS CONDITIONS ----------
+    // suspicious
     const suspicious =
       suspiciousDown ||
       extremeDown ||
