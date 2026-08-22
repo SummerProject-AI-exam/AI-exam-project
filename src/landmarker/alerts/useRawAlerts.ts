@@ -16,7 +16,7 @@ export function useRawAlerts({
 }: RawAlertInput): AlertType | null {
 
   const now = Date.now();
-// delays before triggering alerts
+  // delays before triggering alerts
   const startTimeRef = useRef(now);
   const startupDelayPassed = now - startTimeRef.current > 300;
 
@@ -31,6 +31,7 @@ export function useRawAlerts({
   const lastOnRef = useRef(now);
   if (!cameraOff) lastOnRef.current = now;
   const offStable = cameraOff && now - lastOnRef.current > 300;
+
 
   return useMemo(() => {
 

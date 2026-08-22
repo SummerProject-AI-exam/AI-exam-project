@@ -14,6 +14,8 @@ export function AlertPanel({ alert }: Props) {
     CAMERA_OFF: "Camera is off",
     CAMERA_BLOCKED: "Camera is blocked",
     CAMERA_NOT_READY: "Camera is not ready",
+    CAMERA_READY: "Camera is ready",
+    OK: "Everything is OK",
   }[alert.type];
 
   const color = {
@@ -22,6 +24,8 @@ export function AlertPanel({ alert }: Props) {
     CAMERA_OFF: "#f44336",
     CAMERA_BLOCKED: "#9c27b0",
     CAMERA_NOT_READY: "#607d8b",
+    CAMERA_READY: "#4caf50",
+    OK: "#4caf50",
   }[alert.type];
 
   return (

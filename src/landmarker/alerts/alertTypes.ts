@@ -1,5 +1,5 @@
 
- export type AlertType =
+export type AlertType =
   | "NO_FACE"
   | "MULTIPLE_FACES"
   | "CAMERA_OFF"

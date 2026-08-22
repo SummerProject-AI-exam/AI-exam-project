@@ -28,6 +28,9 @@ import ReadinessTest from "./pages/ReadinessTest";
 import MonitoringTest from "./pages/MonitoringTest";
 import MonitoringDemo from './window_blur_focus/pages/MonitorDemo';
 import './App.css';
+import GazeTestPage from './pages/GazeTest';
+import CalibrationPage from './pages/CalibrationPage';
+import GazeAlertsPage from './pages/GazeAlertsPage';
 
 
 
@@ -99,7 +102,10 @@ function App() {
         <Route path="/student/results"  element={<StudentResultsPage />} />
         <Route path="/readiness-test" element={<ReadinessTest />} />
         <Route path="/monitor" element={<MonitoringTest />} />
-        <Route path="/focus-monitor" element={<MonitoringDemo />} />
+        <Route path="/focus-monitor" element={<MonitoringDemo sessionId="" />} />
+        <Route path="/gaze-test" element={<GazeTestPage />} />
+        <Route path="/calibration" element={<CalibrationPage />} />
+        <Route path="/gaze-alerts" element={<GazeAlertsPage />} />
       </Routes>
     </BrowserRouter>
   );
