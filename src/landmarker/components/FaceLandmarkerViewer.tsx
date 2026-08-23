@@ -15,7 +15,7 @@ export default function FaceLandmarkerViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const { canvasRef, isLoaded, results, cameraReady } = useFaceLandmarker(videoRef);
 
-  // FACE COUNT CHANGE LOG
+  // FACE COUNT CHANGE LOG, SHOWS IF FACE COUNT CHNAGED
   const faceCount = results?.faceLandmarks?.length ?? 0;
 
 
@@ -33,7 +33,7 @@ export default function FaceLandmarkerViewer() {
   const cameraBlocked = useCameraBlocked(videoRef, faceDetected);
   const cameraOff = useCameraOff(videoRef);
 
-  // ALERT INPUT CHANGE LOG
+  // ALERT INPUT CHANGE LOG. SHOWS CHANGED INPUT
   const alertInput = { faceCount, cameraReady, cameraBlocked, cameraOff };
   const prevAlertInputRef = useRef<any>(null);
 
@@ -44,7 +44,7 @@ export default function FaceLandmarkerViewer() {
 
   const alert = useAlerts(alertInput, sessionId);
 
-  // FINAL ALERT STATE LOG
+  // FINAL ALERT STATE LOG, SHOWS CHANGED STATE
   const prevAlertRef = useRef<any>(null);
   if (prevAlertRef.current?.type !== alert?.type) {
     console.log("ALERT STATE CHANGED:", {

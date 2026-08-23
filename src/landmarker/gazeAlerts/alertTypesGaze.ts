@@ -1,0 +1,7 @@
+
+export type GazeAlertType =
+  | "LOOKING_AWAY_LEFT"
+  | "LOOKING_AWAY_RIGHT"
+  | "LOOKING_AWAY_UP"
+  | "LOOKING_AWAY_DOWN"
+  | "EYES_COVERED";
