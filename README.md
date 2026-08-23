@@ -294,7 +294,6 @@ The platform follows a web client/server architecture.
        └─────────────────┘              └──────────────────┘
 
 
-## Tech Stack
 
 ### Frontend
 
@@ -404,7 +403,23 @@ Fraud Events
 
    └── Pose/head events
 
+## Technology Stack
 
+| Area | Technology |
+|---|---|
+| Frontend | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Routing | React Router |
+| Backend | Node.js |
+| API | Express.js |
+| Database | Supabase / PostgreSQL |
+| Face / Head Monitoring | MediaPipe Face Landmarker |
+| Gaze Monitoring | WebGazer.js / gaze-related browser monitoring |
+| CSV Processing | PapaParse |
+| Version Control | Git / GitHub |
+
+---
 ## How to Run 
 1. ... 
 2. ...
