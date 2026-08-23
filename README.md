@@ -342,6 +342,68 @@ The current Supabase database includes entities for:
 - Fraud_Events
 - Risk_Scores
 
+## Main Relationships
+
+Teacher
+
+   │
+
+   └── Course
+
+          │
+
+          ├── Enrollment ───── Student
+
+          │
+
+          ├── Assignment
+
+          │      ├── Assignment Questions
+
+          │      └── Assignment Submissions
+
+          │
+
+          └── Exam
+
+                 ├── Multiple Choice Questions
+
+                 ├── Coding Questions
+
+                 ├── Exam Submissions
+
+                 └── Exam Sessions
+
+                          │
+
+                          └── Fraud Events
+
+## Examination Monitoring Relationship
+
+Student
+
+   │
+
+   ▼
+
+Exam Session
+
+   │
+
+   ▼
+
+Fraud Events
+
+   ├── Window events
+
+   ├── Camera events
+
+   ├── Face events
+
+   ├── Gaze events
+
+   └── Pose/head events
+
 
 ## How to Run 
 1. ... 
