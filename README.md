@@ -533,6 +533,30 @@ npm install
 
 Create the required .env files.
 
+### Frontend 
+
+```env 
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_API_URL=your_backend_api_url
+
+### Backend
+PORT=3001 
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+### 5. Start the backend
+
+npm run dev
+
+### 6. Start the frontend
+
+npm run dev
+
+Use the local URL shown by Vite in the terminal.
+
+---
+
 
 ## Current Status
 - Week 2
