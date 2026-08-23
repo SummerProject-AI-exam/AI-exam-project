@@ -509,9 +509,30 @@ Event Type Classification
 ---
 
 
-## How to Run 
-1. ... 
-2. ...
+## Getting Started
+
+### 1. Clone the repository
+
+git clone https://github.com/SummerProject-AI-exam/AI-exam-project
+
+cd AI-exam-project
+
+### 2. Install frontend dependencies
+
+cd frontend
+
+npm install
+
+### 3. Install backend dependencies
+
+cd ../backend
+
+npm install
+
+### 4. Configure environment variables
+
+Create the required .env files.
+
 
 ## Current Status
 - Week 2
