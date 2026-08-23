@@ -420,6 +420,20 @@ Fraud Events
 | Version Control | Git / GitHub |
 
 ---
+
+## AI and Intelligent Monitoring
+
+### Face and Head Monitoring
+
+MediaPipe Face Landmarker is used for browser-based face/head
+ monitoring.
+
+The monitoring functionality can detect conditions such as:
+
+- No face detected
+- Multiple faces detected
+- Head/pose movement
+
 ## How to Run 
 1. ... 
 2. ...
