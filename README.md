@@ -483,6 +483,30 @@ no_face
 multiple_faces
 
 ---
+## Fraud Risk Classification
+
+The Fraud Report groups monitoring events into risk levels to make the
+ report easier for teachers to interpret.
+
+The classification is based primarily on **event type**.  
+
+Monitoring Event
+
+       │
+
+       ▼
+
+Event Type Classification
+
+       │
+
+       ├── High Risk
+
+       ├── Medium Risk
+
+       └── Low Risk
+
+---
 
 
 ## How to Run 
