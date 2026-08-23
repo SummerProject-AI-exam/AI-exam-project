@@ -563,6 +563,77 @@ Use the local URL shown by Vite in the terminal.
 
 ---
 
+## Main User Workflows
+
+### Teacher Workflow
+
+Teacher Login
+
+      ↓
+
+Teacher Dashboard
+
+      ↓
+
+Create / Select Course
+
+      ↓
+
+Manage Students
+
+      ↓
+
+Create Assignments / Exams
+
+      ↓
+
+Monitor Examination Activity
+
+      ↓
+
+Review Reports
+
+      ↓
+
+Analyze Results / Fraud Events
+
+### Student Workflow
+
+Student Login
+
+      ↓
+
+Student Dashboard
+
+      ↓
+
+Browse / Enroll in Course
+
+      ↓
+
+View Assignments / Exams
+
+      ↓
+
+Submit Assignment
+
+      ↓
+
+Take Examination
+
+      ↓
+
+Examination Monitoring
+
+      ↓
+
+Automatic / Manual Assessment
+
+      ↓
+
+View Results
+
+---
 
 
 
