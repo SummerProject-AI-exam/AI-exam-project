@@ -434,6 +434,57 @@ The monitoring functionality can detect conditions such as:
 - Multiple faces detected
 - Head/pose movement
 
+### Gaze Monitoring
+
+Gaze-related monitoring is used to identify unusual looking-away or
+ gaze-drift events.
+
+Examples include:
+
+gaze_looking_away
+
+gaze_drift_too_far
+
+gaze_rapid_changes
+
+gaze_looking_away_left
+
+gaze_looking_away_right
+
+gaze_looking_away_up
+
+gaze_looking_away_down
+
+gaze_eyes_covered
+
+---
+
+## Examination Monitoring Events
+
+The Fraud_Events table stores monitoring events associated with an
+examination session.
+
+Examples of event types currently used by the project include:
+
+window_blur
+
+window_focus
+
+camera_ready
+
+camera_blocked
+
+camera_not_ready
+
+camera_off
+
+no_face
+
+multiple_faces
+
+---
+
+
 ## How to Run 
 1. ... 
 2. ...
