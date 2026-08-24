@@ -103,7 +103,7 @@ Weaknesses are micro movements of the head which produce drift in dx/dy values. 
 
 Head pose was stable enough to build direction alerts on for clear cases, so we chose this approach. It works universally across users and can be customized to a certain user by gaze calibration, which we built in order to get more reliable monitoring results.
 
-However, even with calibration, the boundary between “screen” and “slightly off screen” remains unstable.
+However, even with calibration, the boundary between “screen” and “slightly off screen” stays unstable.
 
 ---
 
@@ -117,20 +117,19 @@ Camera alerts are stable and detect:
 
 - no face visible
 - multiple faces
-- face covered or occluded
-- face too far from camera
-- sudden appearance of another person
+- camera blocked
+- camera off
 
 ### Readiness check
 
-Readiness check is fully implemented and verifies before the exam:
+Readiness check is fully implemented and verifies before the exam that:
 
 - camera works
 - face is visible
 - lighting is acceptable
 - student is centered
 - no multiple faces
-- no occlusion
+- frame is stable (no freeze)
 
 ### Calibration
 
