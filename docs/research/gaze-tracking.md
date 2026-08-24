@@ -1,6 +1,8 @@
-Gaze Tracking
+#Gaze Tracking#
+---
 
-Researching different libraries and options
+##Researching different libraries and options##
+---
 At the beginning of the project we researched different options for face recognition and gaze tracking. Our restriction was to use an open source and universal library that would work on all computers independent of operating systems. 
 
 WebGazer.js
