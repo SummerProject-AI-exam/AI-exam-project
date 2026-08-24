@@ -19,7 +19,7 @@ MIT Press Direct: https://direct.mit.edu/opmi/article/doi/10.1162/opmi_a_00171/1
 National Library of Medicine: https://pubmed.ncbi.nlm.nih.gov/36323996/
 https://github.com/jspsych/jsPsych/blob/main/docs/overview/eye-tracking.md
 
-## MediaPipe Face Landmarker
+### MediaPipe Face Landmarker
 Face Landmarker works different from WebGazer. It detects facial landmarks and facial outputs and can be used for webcam-based exam monitoring. But it is not an eye-tracking system. Looking away from the screen is not measured by eye movement, but computed from head signals, pose, eye-openness and eye direction. But instead of WebGazer that answers where on a screen the student is looking, Face Landmarker can estimate and measure where a student is looking which makes looking away from screen easier detectable. 
 
 Face Landmarker is currently maintained and supported. It works with normal webcams and is easy to integrate into a browser-based monitoring system. Face Landmarker returns 478 landmarks per detected face, including 3D landmark coordinates. The provided landmarks can be used to estimate changes in face orientation and therefor support looking away in exam monitoring. The landmarks include eye-related information to help interpret looking away from screen. Face detection, face presence, and tracking all have configurable minimum confidence thresholds.
