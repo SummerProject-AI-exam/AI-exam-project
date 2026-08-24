@@ -346,66 +346,128 @@ Fraud Events
 
 ---
 
-## AI and Intelligent Monitoring
+## AI and Monitoring
 
-### Face and Head Monitoring
+This part of the system handles everything related to the webcam: face detection, camera readiness, calibration, and the prototype gaze alerts. It all runs in the browser using MediaPipe Face Landmarker.
 
-MediaPipe Face Landmarker is used for browser-based face/head
- monitoring.
+---
 
-The monitoring functionality can detect conditions such as:
+## Face & Camera Monitoring
 
-- No face detected
-- Multiple faces detected
-- Head/pose movement
+The basic monitoring runs all the time and checks that the camera is working and the student is actually visible. It can detect things like:
 
-### Gaze Monitoring
+- **no_face**
+- **multiple_faces**   
+- **camera_off**
+- **camera_blocked**
 
-Gaze-related monitoring is used to identify unusual looking-away or
- gaze-drift events.
+These alerts form the base layer of the monitoring system.
 
-Examples include:
+---
 
-gaze_looking_away
+## Readiness Check
 
-gaze_drift_too_far
+Before an exam session begins, the system performs a camera readiness check:
 
-gaze_rapid_changes
+- camera is working  
+- face is visible 
+- lighting is acceptable  
+- no multiple faces   
+- frame is stable (no freezing)  
 
-gaze_looking_away_left
+If readiness fails, the exam does not start.
 
-gaze_looking_away_right
+---
 
-gaze_looking_away_up
+## Gaze Calibration
 
-gaze_looking_away_down
+The system includes individualized gaze calibration for each student.  
+During calibration, the system records baseline head‑pose values for
 
-gaze_eyes_covered
+- **CENTER**  
+- **LEFT**  
+- **RIGHT**  
+- **UP**  
+- **DOWN**
+
+These baseline values help adjust for different webcams, seating positions, and lighting.
+
+---
+
+## Gaze Features
+
+The gaze logic uses head‑pose values (yaw/pitch) and other signals from Face Landmarker.
+It computes:
+ 
+- dx/dy direction values  
+- smoothed gaze vectors  
+- eye openness and direction  
+- classification into **left**, **right**, **up**, **down**, **center**
+
+These features are used by both calibration and gaze alerts.
+
+---
+
+## Gaze Alerts (Prototype)
+
+The system has a prototype for detecting when a student is looking away from the screen.
+It can detect:
+
+- looking away left
+- looking away right
+- looking away up
+
+Clear head‑turn events work reliably.
+Borderline cases (like looking at the edge of the screen) are still unstable and would need more development time. Eyes covered and a keyboard-safe zone were considered, but not implemented in this prototype
 
 ---
 
 ## Examination Monitoring Events
 
-The Fraud_Events table stores monitoring events associated with an
-examination session.
+All monitoring events are logged to Supabase in the `Fraud_Events` table.
 
-Examples of event types currently used by the project include:
+Examples include:
 
-window_blur
+- **window_blur**  
+- **window_focus**  
+- **camera_ready**  
+- **camera_blocked**  
+- **camera_off**  
+- **camera_not_ready**  
+- **no_face**  
+- **multiple_faces**  
+- **gaze_looking_away (direction)**  
+- **calibration_ready**  
 
-window_focus
+---
 
-camera_ready
+## Architecture Overview
 
-camera_blocked
+The monitoring system is built in layers:
 
-camera_not_ready
+**FaceLandmarker → readiness check → camera alerts → calibration → gaze features → gaze alerts → logging → UI pages**
 
-camera_off
+### Folder Structure
 
-no_face
+- **src/landmarker/alerts/** – camera alerts  
+- **src/landmarker/analysis/** – readiness & camera quality  
+- **src/gaze/** – gaze feature extraction  
+- **src/gazeAlerts/** – gaze alert logic  
+- **src/hooks/** – pipeline connecting all layers  
+- **src/components/** – UI pages 
+- **src/pages/** – testing pages  
+- **src/utils/** – drawing & Supabase logging
 
-multiple_faces
+`src/hooks` is the center of the pipeline. It:
+
+- starts the webcam  
+- runs FaceLandmarker  
+- sends raw data to readiness & alerts  
+- computes gaze features  
+- runs calibration  
+- runs gaze alerts  
+- logs events  
+- provides UI‑ready data to components
 
 ---
 ## Fraud Risk Classification
