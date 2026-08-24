@@ -1,5 +1,3 @@
-
-=======
 # AI-exam-project
  
 > An intelligent examination platform for managing courses, assignments,
