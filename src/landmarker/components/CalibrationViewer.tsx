@@ -4,7 +4,14 @@ import { useFaceLandmarker } from "../hooks/useFaceLandmarker";
 import { useGaze } from "../hooks/useGaze";
 import { logFraudEvent } from "../alerts/logFraudEvent";
 
-export function CalibrationViewer({ sessionId }: { sessionId: string }) {
+export function CalibrationViewer({
+  sessionId,
+  onStartCalibration,
+}: {
+  sessionId: string;
+  onStartCalibration?: (fn: () => void) => void;
+}) {
+
   const { videoRef, startCamera, stopCamera } = useWebcam();
 
   useEffect(() => {
@@ -27,6 +34,12 @@ export function CalibrationViewer({ sessionId }: { sessionId: string }) {
     calibration,
     debug,
   } = useGaze(results);
+
+useEffect(() => {
+  if (onStartCalibration) {
+    onStartCalibration(startCalibration);
+  }
+}, []); 
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const [dotPos, setDotPos] = useState({ top: 0, left: 0 });
@@ -73,14 +86,22 @@ vector=${debug.vectorMagnitude.toFixed(3)}
     console.log(log);
   }, [calibration.collected]);
 
-  useEffect(() => {
-    if (calibration.state === "MONITORING" && baseline) {
-      logFraudEvent({
-        sessionId,
-        eventType: "CALIBRATION_READY",
-      });
-    }
-  }, [calibration.state, baseline]);
+const hasLoggedRef = useRef(false);
+
+useEffect(() => {
+  if (
+    calibration.state === "MONITORING" &&
+    baseline &&
+    !hasLoggedRef.current
+  ) {
+    hasLoggedRef.current = true;
+
+    logFraudEvent({
+      sessionId,
+      eventType: "CALIBRATION_READY",
+    });
+  }
+}, [calibration.state, baseline, sessionId]);
 
   useEffect(() => {
   if (calibration.state === "MONITORING" && baseline) {
@@ -95,7 +116,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         position: "relative",
         width: "100%",
         maxWidth: "1200px",
-        height: "80vh",
+        height: "55vh",
         margin: "0 auto",
       }}
     >
@@ -216,7 +237,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
       </div>
 
       {/* SAMPLE LOG BOX */}
-      {calibration.state !== "ABORTED" && (
+{/*       {calibration.state !== "ABORTED" && (
         <pre
           style={{
             position: "absolute",
@@ -236,10 +257,10 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         >
           {sampleLog}
         </pre>
-      )}
+      )} */}
 
       {/* CALIBRATION LOGS */}
-      <div
+{/*       <div
         style={{
           position: "absolute",
           bottom: "10px",
@@ -268,10 +289,10 @@ vector=${debug.vectorMagnitude.toFixed(3)}
             )}
           </>
         )}
-      </div>
+      </div> */}
 
       {/* PERFORMANCE DEBUG */}
-      {calibration.state !== "ABORTED" && (
+{/*       {calibration.state !== "ABORTED" && (
         <div
           style={{
             position: "absolute",
@@ -290,20 +311,16 @@ vector=${debug.vectorMagnitude.toFixed(3)}
           <div>Throttle: {debug.throttle.toFixed(1)} ms</div>
           <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
         </div>
-      )}
+      )} */}
 
       {/* CALIBRATE BUTTON */}
-      <button
-        onClick={startCalibration}
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          right: "10px",
-          zIndex: 9999,
-        }}
-      >
-        Calibrate
-      </button>
+<button
+  onClick={startCalibration}
+  style={{ display: "none" }}
+>
+  Calibrate
+</button>
+
     </div>
   );
 }

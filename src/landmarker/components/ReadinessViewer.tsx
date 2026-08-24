@@ -39,7 +39,14 @@ function useVideoTimestampFrozen(videoRef: React.RefObject<HTMLVideoElement>) {
   return frozen;
 }
 
-export function CombinedViewer() {
+export function CombinedViewer({
+  mode = "training-demo",
+  onReady,
+}: {
+  mode?: string;
+  onReady?: () => void;
+}) {
+
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const videoRefNonNull = videoRef as React.RefObject<HTMLVideoElement>;
 
@@ -77,11 +84,39 @@ export function CombinedViewer() {
     lighting,
   });
 
+useEffect(() => {
+  if (!phase1Done && !readiness.ok) {
+    setPhase1Done(false);
+    setReadySince(null);
+  }
+}, [readiness.ok, phase1Done]);
+
+
+useEffect(() => {
+  console.log("[DEBUG] cameraReady =", cameraReady);
+}, [cameraReady]);
+
+useEffect(() => {
+  console.log("[DEBUG] readySince =", readySince);
+}, [readySince]);
+
+useEffect(() => {
+  console.log("[DEBUG] phase1Done =", phase1Done);
+}, [phase1Done]);
+
   const readinessImproving = readiness.ok || readySince !== null;
 
   const [freezeStart, setFreezeStart] = useState<number | null>(null);
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get("sessionId") ?? "";
+
+  const isCameraCheck = mode === "camera-check";
+  const isTrainingDemo = mode === "training-demo";
+
+  const showCalibrationBox = !isCameraCheck;
+  const showAlerts = !isCameraCheck;
+  const showReadinessMessages = !isCameraCheck;
+
 
   useEffect(() => {
     startCamera();
@@ -103,10 +138,10 @@ export function CombinedViewer() {
   useEffect(() => {
     if (!phase1Done && readySince !== null) {
       const now = performance.now();
-      if (now - readySince > 2500) {
-        stopCamera();
-        setPhase1Done(true);
-      }
+             if (now - readySince > 2500) {
+              //stopCamera();
+              setPhase1Done(true);
+            } 
     }
   }, [readySince, phase1Done, stopCamera]);
 
@@ -129,12 +164,12 @@ export function CombinedViewer() {
       setFreezeStart(null);
     }
 
-    if (freezeStart && now - freezeStart > 6000) {
-      if (!readinessImproving) {
-        stopCamera();
-        setPhase1Done(true);
-      }
-    }
+         if (freezeStart && now - freezeStart > 6000) {
+          if (!readinessImproving) {
+            //stopCamera();
+            setPhase1Done(true);
+          }
+        } 
 
   }, [
     frameFrozen,
@@ -151,7 +186,7 @@ export function CombinedViewer() {
   useEffect(() => {
     if (!phase1Done && results === null) {
       if (!readinessImproving) {
-        stopCamera();
+        //stopCamera();
         setPhase1Done(true);
       }
     }
@@ -159,12 +194,14 @@ export function CombinedViewer() {
 
 
   return (
-    <div>
+    <div style={{ width: 640, margin: "0 auto" }}>
       <div
         style={{
           position: "relative",
-          width: 320,
-          height: 240,
+          width: 640,
+          height: "auto",
+          margin: "0 auto",
+          marginTop: "20px",
         }}
       >
         <video
@@ -201,7 +238,7 @@ export function CombinedViewer() {
         </div>
       )}
 
-      {phase1Done && (
+      {phase1Done && showCalibrationBox && (
         <div
           style={{
             marginTop: "20px",
@@ -209,8 +246,10 @@ export function CombinedViewer() {
             borderRadius: "8px",
             background: "#f7f7f7",
             border: "1px solid #ddd",
-            width: "320px",
+            width: "640px",
             textAlign: "center",
+            marginLeft: "auto",
+            marginRight: "auto",
           }}
         >
           <h3 style={{ marginBottom: "8px" }}>Calibration Results</h3>
@@ -237,7 +276,7 @@ export function CombinedViewer() {
             </div>
           )}
 
-          {readiness.alerts.length > 0 && (
+          {showAlerts && readiness.alerts.length > 0 && (
             <div
               style={{
                 textAlign: "left",
@@ -251,38 +290,41 @@ export function CombinedViewer() {
             </div>
           )}
 
-          {readiness.ok ? (
-            <button
-              onClick={() => window.location.href = `/monitor?sessionId=${sessionId}&ready=true`}
-              style={{
-                padding: "10px 16px",
-                background: "#0078ff",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                width: "100%",
-                marginBottom: "8px",
-              }}
-            >
-              Start Monitoring
-            </button>
-          ) : (
-            <button
-              onClick={() => window.location.reload()}
-              style={{
-                padding: "10px 16px",
-                background: "#e0e0e0",
-                color: "#333",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                width: "100%",
-              }}
-            >
-              Redo Calibration
-            </button>
+          {showReadinessMessages && (
+            readiness.ok ? (
+              <button
+                onClick={() => onReady?.()}
+                style={{
+                  padding: "10px 16px",
+                  background: "#0078ff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  width: "100%",
+                  marginBottom: "8px",
+                }}
+              >
+                Start Monitoring
+              </button>
+            ) : (
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  padding: "10px 16px",
+                  background: "#e0e0e0",
+                  color: "#333",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                Redo Calibration
+              </button>
+            )
           )}
+
         </div>
       )}
     </div>

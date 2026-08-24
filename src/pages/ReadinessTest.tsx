@@ -5,7 +5,7 @@ export default function ReadinessTest() {
   return (
     <div style={{ padding: 20 }}>
       <h1>Readiness Test</h1>
-      <CombinedViewer />
+      <CombinedViewer mode="camera-check" onReady={() => console.log("Ready!")} />
     </div>
   );
 }
