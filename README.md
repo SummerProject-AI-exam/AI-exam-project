@@ -622,18 +622,20 @@ View Results
 
 ---
 
+## License
+
+This project was developed as an academic project.
+
+The source code is provided for educational and demonstration purposes.
+No open-source license has been applied to this project.
+
+---
+
+## Useful Links
+
+- 💻 **GitHub Repository:** https://github.com/SummerProject-AI-exam/AI-exam-project
+- 🎨 **Figma Design:**https://www.figma.com/design/bu6pj2jNmVcmUA7oBhhakw/AI-Exam?node-id=0-1&m=dev&t=p3yrKZVRZVtDuC5H-1
 
 
-## Current Status
-- Week 2
-- What's done: Research, wireframes, and database
-- What's next: CSV import, and the main page for student and teacher
 
-## Key Features
-- [ ] Authentication
-- [ ] Weekly assignments
-- [ ] Exam mode
-- [ ] Gaze tracking (POC)
-- [ ] Tab tracking
-- [ ] Teacher dashboard
->>>>>>> 5d56a91baed69cf49758d2be394331103eedab1f
+
