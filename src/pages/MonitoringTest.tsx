@@ -3,21 +3,21 @@ import FaceLandmarkerViewer from "../landmarker/components/FaceLandmarkerViewer"
 export default function MonitoringTest() {
   return (
     <div
-      style={{ minHeight: "100vh", background: "#111", color: "#eee" }}
+      style={{
+        width: "100%",
+        maxWidth: 640,
+        margin: "0 auto",
+        padding: 20,
+        textAlign: "center",
+        background: "white",
+        borderRadius: "12px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      }}
     >
-      <h1 style={{ textAlign: "center", padding: "1rem" }}>
-        FaceLandmarker Demo
-      </h1>
+      <h1 style={{ marginBottom: 20 }}>Monitoring</h1>
+      <h2 style={{ marginBottom: 20 }}>Camera Alerts</h2>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          width: "100%",
-        }}
-      >
-        <FaceLandmarkerViewer />
-      </div>
+      <FaceLandmarkerViewer />
     </div>
   );
 }
