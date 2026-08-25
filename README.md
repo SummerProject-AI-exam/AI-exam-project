@@ -646,6 +646,7 @@ No open-source license has been applied to this project.
 
 - 💻 **GitHub Repository:** https://github.com/SummerProject-AI-exam/AI-exam-project
 - 🎨 **Figma Design:**https://www.figma.com/design/bu6pj2jNmVcmUA7oBhhakw/AI-Exam?node-id=0-1&m=dev&t=p3yrKZVRZVtDuC5H-1
+- 🎥 **Project Demo:** https://youtu.be/ONmR5uBsgzc
 
 
 
