@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { CalibrationViewer } from "../../landmarker/components/CalibrationViewer";
 
 type Props = {
@@ -6,94 +6,87 @@ type Props = {
   onContinue: () => void;
 };
 
-export default function CalibrationStep({ sessionId, onContinue }: Props) {
-  const [startCalibrationFn, setStartCalibrationFn] = useState<(() => void) | null>(null);
-
-  const handleStartCalibration = React.useCallback((fn: () => void) => {
-    setStartCalibrationFn(() => fn);
-  }, []);
-
+export default function CalibrationStep({ sessionId }: Props) {
   return (
     <div
       style={{
-        width: "100%",
-        maxWidth: 720,
-        margin: "0 auto",
-        paddingTop: 40,
-        paddingBottom: 60,
-        textAlign: "center",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        padding: 32,
+        boxSizing: "border-box",
+        background: "#f5f5f5",
+        paddingTop: "40px",
       }}
     >
-      <h2 style={{ marginBottom: 12, fontSize: "1.8rem" }}>
-        Step 1: Calibration
-      </h2>
-
-      <p style={{ marginBottom: 32, color: "#555", fontSize: "1rem" }}>
-        Look at the dot in the center while the countdown runs.
-        We’ll collect a few samples to measure your gaze baseline.
-      </p>
-
-      {/* Viewer */}
-      <div style={{ marginBottom: 20, height: "60vh" }}>
-        <CalibrationViewer
-          sessionId={sessionId}
-          onStartCalibration={handleStartCalibration}
-        />
-      </div>
-
-      {/* Buttons */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 16,
-          marginTop: 10,
+          width: "100%",
+          maxWidth: 900,
+          background: "#fff",
+          borderRadius: 12,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+          padding: 24,
+          boxSizing: "border-box",
         }}
       >
-        <button
-          onClick={() => window.location.reload()}
+        <h2
           style={{
-            padding: "10px 16px",
-            background: "#e0e0e0",
-            color: "#333",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            width: "140px",
+            marginBottom: 12,
+            fontSize: "1.8rem",
+            textAlign: "center",
           }}
         >
-          Redo
-        </button>
+          Gaze Calibration
+        </h2>
 
-        <button
-          onClick={() => startCalibrationFn?.()}
+        <p
           style={{
-            padding: "10px 16px",
-            background: "#0078ff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            width: "140px",
+            marginBottom: 24,
+            color: "#555",
+            fontSize: "1rem",
+            textAlign: "center",
           }}
         >
-          Calibrate
-        </button>
+          Look at the dot in the center while the countdown runs.
+          We’ll collect a few samples to measure your gaze baseline.
+        </p>
 
-        <button
-          onClick={onContinue}
+        <div style={{ marginBottom: 24 }}>
+          <CalibrationViewer sessionId={sessionId} />
+        </div>
+
+        <div
           style={{
-            padding: "10px 16px",
-            background: "#00a000",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            width: "140px",
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 8,
           }}
         >
-          Continue
-        </button>
+          <button
+            onClick={() => {
+              const btn = document.querySelector(
+                'button[style*="z-index: 9999"]'
+              ) as HTMLButtonElement | null;
+              btn?.click();
+            }}
+            style={{
+              padding: "14px 26px",
+              background: "#0078ff",
+              color: "white",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              minWidth: 180,
+              fontSize: "1.1rem",
+              fontWeight: 600,
+            }}
+          >
+            Calibrate
+          </button>
+        </div>
       </div>
     </div>
   );

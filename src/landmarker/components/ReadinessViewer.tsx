@@ -39,14 +39,7 @@ function useVideoTimestampFrozen(videoRef: React.RefObject<HTMLVideoElement>) {
   return frozen;
 }
 
-export function CombinedViewer({
-  mode = "training-demo",
-  onReady,
-}: {
-  mode?: string;
-  onReady?: () => void;
-}) {
-
+export function CombinedViewer() {
   const { videoRef, startCamera, stopCamera } = useWebcam();
   const videoRefNonNull = videoRef as React.RefObject<HTMLVideoElement>;
 
@@ -84,39 +77,11 @@ export function CombinedViewer({
     lighting,
   });
 
-useEffect(() => {
-  if (!phase1Done && !readiness.ok) {
-    setPhase1Done(false);
-    setReadySince(null);
-  }
-}, [readiness.ok, phase1Done]);
-
-
-useEffect(() => {
-  console.log("[DEBUG] cameraReady =", cameraReady);
-}, [cameraReady]);
-
-useEffect(() => {
-  console.log("[DEBUG] readySince =", readySince);
-}, [readySince]);
-
-useEffect(() => {
-  console.log("[DEBUG] phase1Done =", phase1Done);
-}, [phase1Done]);
-
   const readinessImproving = readiness.ok || readySince !== null;
 
   const [freezeStart, setFreezeStart] = useState<number | null>(null);
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get("sessionId") ?? "";
-
-  const isCameraCheck = mode === "camera-check";
-  const isTrainingDemo = mode === "training-demo";
-
-  const showCalibrationBox = !isCameraCheck;
-  const showAlerts = !isCameraCheck;
-  const showReadinessMessages = !isCameraCheck;
-
 
   useEffect(() => {
     startCamera();
@@ -138,10 +103,10 @@ useEffect(() => {
   useEffect(() => {
     if (!phase1Done && readySince !== null) {
       const now = performance.now();
-             if (now - readySince > 2500) {
-              //stopCamera();
-              setPhase1Done(true);
-            } 
+      if (now - readySince > 2500) {
+        stopCamera();
+        setPhase1Done(true);
+      }
     }
   }, [readySince, phase1Done, stopCamera]);
 
@@ -164,12 +129,12 @@ useEffect(() => {
       setFreezeStart(null);
     }
 
-         if (freezeStart && now - freezeStart > 6000) {
-          if (!readinessImproving) {
-            //stopCamera();
-            setPhase1Done(true);
-          }
-        } 
+    if (freezeStart && now - freezeStart > 6000) {
+      if (!readinessImproving) {
+        stopCamera();
+        setPhase1Done(true);
+      }
+    }
 
   }, [
     frameFrozen,
@@ -186,7 +151,7 @@ useEffect(() => {
   useEffect(() => {
     if (!phase1Done && results === null) {
       if (!readinessImproving) {
-        //stopCamera();
+        stopCamera();
         setPhase1Done(true);
       }
     }
@@ -194,14 +159,38 @@ useEffect(() => {
 
 
   return (
-    <div style={{ width: 640, margin: "0 auto" }}>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "900px",
+        margin: "0 auto",
+        paddingTop: "20px",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
+      {/* Header */}
+      <h2
+        style={{
+          textAlign: "center",
+          marginBottom: "12px",
+          fontWeight: 600,
+          color: "#222",
+        }}
+      >
+        Camera Readiness Check
+      </h2>
+
+      {/* Video Container */}
       <div
         style={{
           position: "relative",
-          width: 640,
-          height: "auto",
-          margin: "0 auto",
-          marginTop: "20px",
+          width: "100%",
+          maxWidth: "900px",
+          borderRadius: "12px",
+          overflow: "hidden",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          background: "#000",
+          marginBottom: "20px",
         }}
       >
         <video
@@ -211,7 +200,6 @@ useEffect(() => {
           style={{
             width: "100%",
             height: "100%",
-            background: "#000",
             transform: "scaleX(-1)",
           }}
         />
@@ -226,33 +214,37 @@ useEffect(() => {
             height: "100%",
             pointerEvents: "none",
             transform: "scaleX(-1)",
-            transformOrigin: "center",
           }}
         />
       </div>
 
+      {/* Camera starting message */}
       {!phase1Done && !cameraReady && (
-        <div>
-          <h3>Camera starting…</h3>
-          <p>Please wait 1–2 seconds.</p>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h3 style={{ marginBottom: "4px" }}>Camera starting…</h3>
+          <p style={{ color: "#555" }}>Please wait 1–2 seconds.</p>
         </div>
       )}
 
-      {phase1Done && showCalibrationBox && (
+      {/* Calibration Box */}
+      {phase1Done && (
         <div
           style={{
-            marginTop: "20px",
-            padding: "16px",
-            borderRadius: "8px",
-            background: "#f7f7f7",
+            marginTop: "10px",
+            padding: "20px",
+            borderRadius: "12px",
+            background: "#fafafa",
             border: "1px solid #ddd",
-            width: "640px",
-            textAlign: "center",
+            width: "100%",
+            maxWidth: "480px",
             marginLeft: "auto",
             marginRight: "auto",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ marginBottom: "8px" }}>Calibration Results</h3>
+          <h3 style={{ marginBottom: "12px", fontWeight: 600 }}>
+            Calibration Results
+          </h3>
 
           {readiness.ok ? (
             <div
@@ -276,12 +268,13 @@ useEffect(() => {
             </div>
           )}
 
-          {showAlerts && readiness.alerts.length > 0 && (
+          {readiness.alerts.length > 0 && (
             <div
               style={{
                 textAlign: "left",
-                marginBottom: "12px",
-                fontSize: "0.9rem",
+                marginBottom: "16px",
+                fontSize: "0.95rem",
+                lineHeight: "1.4",
               }}
             >
               {readiness.alerts.map((a) => (
@@ -290,43 +283,46 @@ useEffect(() => {
             </div>
           )}
 
-          {showReadinessMessages && (
-            readiness.ok ? (
-              <button
-                onClick={() => onReady?.()}
-                style={{
-                  padding: "10px 16px",
-                  background: "#0078ff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  width: "100%",
-                  marginBottom: "8px",
-                }}
-              >
-                Start Monitoring
-              </button>
-            ) : (
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  padding: "10px 16px",
-                  background: "#e0e0e0",
-                  color: "#333",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  width: "100%",
-                }}
-              >
-                Redo Calibration
-              </button>
-            )
+          {readiness.ok ? (
+            <button
+              onClick={() =>
+                (window.location.href = `/monitor?sessionId=${sessionId}&ready=true`)
+              }
+              style={{
+                padding: "12px 18px",
+                background: "#0078ff",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                width: "100%",
+                fontSize: "1rem",
+                fontWeight: 500,
+              }}
+            >
+              Start Monitoring
+            </button>
+          ) : (
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: "12px 18px",
+                background: "#e0e0e0",
+                color: "#333",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                width: "100%",
+                fontSize: "1rem",
+                fontWeight: 500,
+              }}
+            >
+              Redo Calibration
+            </button>
           )}
-
         </div>
       )}
     </div>
   );
+
 }

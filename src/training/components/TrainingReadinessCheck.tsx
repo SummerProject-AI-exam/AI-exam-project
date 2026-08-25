@@ -12,9 +12,17 @@ export default function TrainingReadines({ onContinue }: Props) {
       <h2>Camera Readiness Check</h2>
       <p>The system checks camera conditions.</p>
 
-      <div style={{ width: 640, margin: "0 auto", position: "relative" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "900px",
+          margin: "0 auto",
+          position: "relative",
+        }}
+      >
+
         <TrainingViewerFrame>
-          <CombinedViewer mode="training-demo" onReady={onContinue} />
+          <CombinedViewer />
         </TrainingViewerFrame>
       </div>
 

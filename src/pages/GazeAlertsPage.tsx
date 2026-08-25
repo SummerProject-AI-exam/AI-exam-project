@@ -6,8 +6,8 @@ export default function GazeAlertsPage() {
   const sessionId = params.get("sessionId") ?? "";
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Gaze Alerts Test</h1>
+    <div style={{ padding: 20, textAlign: "center" }}>
+      <h1>Gaze Monitoring</h1>
       <GazeAlertViewer sessionId={sessionId} />
     </div>
   );

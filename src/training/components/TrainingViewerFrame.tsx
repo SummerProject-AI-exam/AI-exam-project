@@ -3,11 +3,17 @@ export default function TrainingViewerFrame({ children }: { children: any }) {
     <div
       style={{
         marginTop: "20px",
-        width: 640,
+        width: "100%",
+        maxWidth: "900px",
+        height: "60vh",
         display: "flex",
-        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
+        borderRadius: "12px",
+        background: "#000",
+        marginLeft: "auto",
+        marginRight: "auto",
       }}
     >
       {children}
