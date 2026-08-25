@@ -19,7 +19,7 @@ events through dedicated reporting pages.
 
 Take a quick look at the AI Exam Platform in action.
 
-[▶️ **Watch the Project Demo**](DEMO_VIDEO_LINK)
+[▶️ **Watch the Project Demo**](https://youtu.be/ONmR5uBsgzc)
 
 ---
 
