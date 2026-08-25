@@ -31,8 +31,6 @@ import './App.css';
 import GazeTestPage from './pages/GazeTest';
 import CalibrationPage from './pages/CalibrationPage';
 import GazeAlertsPage from './pages/GazeAlertsPage';
-import TrainingRoom from './training/TrainingRoom';
-
 
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
@@ -105,7 +103,6 @@ function App() {
         <Route path="/gaze-test" element={<GazeTestPage />} />
         <Route path="/calibration" element={<CalibrationPage />} />
         <Route path="/gaze-alerts" element={<GazeAlertsPage />} />
-        <Route path= "/training-room" element= {<TrainingRoom />} />
       </Routes>
     </BrowserRouter>
   );
