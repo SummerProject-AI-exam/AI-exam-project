@@ -346,6 +346,14 @@ Fraud Events
 
 ---
 
+| Team Member | Main Contributions | 
+|---|---| 
+| Yvonne Frankort | Wireframes, database structure, frontend/backend features, camera readiness checks, camera alerts, gaze calibration, gaze/pose alerts , backlog management, documenting weekly reports | 
+| Valtteri Myllyniemi | Wireframes, database structure, frontend/backend features, authentication, Safe Exam Browser features, testing, backlog management, documenting weekly reports | 
+| Shyama Wijayarathna | Wireframes, database structure, frontend/backend features, CSV generation, window blur/focus monitoring, Teacher and Student dashboard creation,  backlog management, documenting weekly reports |
+
+---
+
 ## AI and Monitoring
 
 This part of the system handles everything related to the webcam: face detection, camera readiness, calibration, and the prototype gaze alerts. It all runs in the browser using MediaPipe Face Landmarker.
