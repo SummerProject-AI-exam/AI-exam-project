@@ -32,9 +32,6 @@ import GazeTestPage from './pages/GazeTest';
 import CalibrationPage from './pages/CalibrationPage';
 import GazeAlertsPage from './pages/GazeAlertsPage';
 
-
-
-
 type viewState = 'selection' | 'teacher-login' | 'student-login';
 
 function MainLogin() {

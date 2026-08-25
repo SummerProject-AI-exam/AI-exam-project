@@ -44,7 +44,7 @@ export default function FaceLandmarkerViewer() {
 
   const alert = useAlerts(alertInput, sessionId);
 
-  // FINAL ALERT STATE LOG, SHOWS CHANGED STATE
+
   const prevAlertRef = useRef<any>(null);
   if (prevAlertRef.current?.type !== alert?.type) {
     console.log("ALERT STATE CHANGED:", {
@@ -66,13 +66,32 @@ export default function FaceLandmarkerViewer() {
     if (results) updateFPS();
   }, [results]);
 
-  return (
+return (
+  <div
+ style={{
+    width: "100%",
+    maxWidth: "900px",
+    margin: "0 auto",
+    background: "white",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "10px", 
+  }}
+  >
+
+    {/* MAIN WINDOW */}
     <div
       style={{
         position: "relative",
-        width: "640px",
-        maxWidth: "100%",
+        width: "100%",
+        maxWidth: "900px",
+        height: "60vh",
         margin: "0 auto",
+        borderRadius: "10px",
+        background: "rgba(255,255,255,0.95)",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        overflow: "hidden",
       }}
     >
       {!isLoaded && (
@@ -80,12 +99,13 @@ export default function FaceLandmarkerViewer() {
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            color: "#fff",
+            background: "rgba(255,255,255,0.9)",
+            color: "#000",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "1.2rem",
+            fontWeight: "bold",
             zIndex: 10,
           }}
         >
@@ -96,13 +116,14 @@ export default function FaceLandmarkerViewer() {
       <div
         style={{
           position: "absolute",
-          top: "10px",
-          left: "10px",
-          background: "rgba(0,0,0,0.6)",
+          top: "12px",
+          left: "12px",
+          background: "rgba(0,120,255,0.85)",
           color: "white",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "0.8rem",
+          padding: "6px 10px",
+          borderRadius: "6px",
+          fontSize: "0.85rem",
+          fontWeight: "bold",
           zIndex: 20,
         }}
       >
@@ -111,7 +132,12 @@ export default function FaceLandmarkerViewer() {
 
       <video
         ref={videoRef}
-        style={{ width: "100%", transform: "scaleX(-1)" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          transform: "scaleX(-1)",
+        }}
         playsInline
         muted
       />
@@ -128,8 +154,18 @@ export default function FaceLandmarkerViewer() {
           transform: "scaleX(-1)",
         }}
       />
+    </div>
 
+    <div
+      style={{
+        maxWidth: "900px",
+        margin: 0,
+        padding: 0,
+      }}
+    >
       <AlertPanel alert={alert} />
     </div>
-  );
+  </div>
+);
+
 }

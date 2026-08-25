@@ -159,12 +159,38 @@ export function CombinedViewer() {
 
 
   return (
-    <div>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "900px",
+        margin: "0 auto",
+        paddingTop: "20px",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
+      {/* Header */}
+      <h2
+        style={{
+          textAlign: "center",
+          marginBottom: "12px",
+          fontWeight: 600,
+          color: "#222",
+        }}
+      >
+        Camera Readiness Check
+      </h2>
+
+      {/* Video Container */}
       <div
         style={{
           position: "relative",
-          width: 320,
-          height: 240,
+          width: "100%",
+          maxWidth: "900px",
+          borderRadius: "12px",
+          overflow: "hidden",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          background: "#000",
+          marginBottom: "20px",
         }}
       >
         <video
@@ -174,7 +200,6 @@ export function CombinedViewer() {
           style={{
             width: "100%",
             height: "100%",
-            background: "#000",
             transform: "scaleX(-1)",
           }}
         />
@@ -189,31 +214,37 @@ export function CombinedViewer() {
             height: "100%",
             pointerEvents: "none",
             transform: "scaleX(-1)",
-            transformOrigin: "center",
           }}
         />
       </div>
 
+      {/* Camera starting message */}
       {!phase1Done && !cameraReady && (
-        <div>
-          <h3>Camera starting…</h3>
-          <p>Please wait 1–2 seconds.</p>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h3 style={{ marginBottom: "4px" }}>Camera starting…</h3>
+          <p style={{ color: "#555" }}>Please wait 1–2 seconds.</p>
         </div>
       )}
 
+      {/* Calibration Box */}
       {phase1Done && (
         <div
           style={{
-            marginTop: "20px",
-            padding: "16px",
-            borderRadius: "8px",
-            background: "#f7f7f7",
+            marginTop: "10px",
+            padding: "20px",
+            borderRadius: "12px",
+            background: "#fafafa",
             border: "1px solid #ddd",
-            width: "320px",
-            textAlign: "center",
+            width: "100%",
+            maxWidth: "480px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ marginBottom: "8px" }}>Calibration Results</h3>
+          <h3 style={{ marginBottom: "12px", fontWeight: 600 }}>
+            Calibration Results
+          </h3>
 
           {readiness.ok ? (
             <div
@@ -241,8 +272,9 @@ export function CombinedViewer() {
             <div
               style={{
                 textAlign: "left",
-                marginBottom: "12px",
-                fontSize: "0.9rem",
+                marginBottom: "16px",
+                fontSize: "0.95rem",
+                lineHeight: "1.4",
               }}
             >
               {readiness.alerts.map((a) => (
@@ -253,16 +285,19 @@ export function CombinedViewer() {
 
           {readiness.ok ? (
             <button
-              onClick={() => window.location.href = `/monitor?sessionId=${sessionId}&ready=true`}
+              onClick={() =>
+                (window.location.href = `/monitor?sessionId=${sessionId}&ready=true`)
+              }
               style={{
-                padding: "10px 16px",
+                padding: "12px 18px",
                 background: "#0078ff",
                 color: "white",
                 border: "none",
-                borderRadius: "6px",
+                borderRadius: "8px",
                 cursor: "pointer",
                 width: "100%",
-                marginBottom: "8px",
+                fontSize: "1rem",
+                fontWeight: 500,
               }}
             >
               Start Monitoring
@@ -271,13 +306,15 @@ export function CombinedViewer() {
             <button
               onClick={() => window.location.reload()}
               style={{
-                padding: "10px 16px",
+                padding: "12px 18px",
                 background: "#e0e0e0",
                 color: "#333",
                 border: "none",
-                borderRadius: "6px",
+                borderRadius: "8px",
                 cursor: "pointer",
                 width: "100%",
+                fontSize: "1rem",
+                fontWeight: 500,
               }}
             >
               Redo Calibration
@@ -287,4 +324,5 @@ export function CombinedViewer() {
       )}
     </div>
   );
+
 }
