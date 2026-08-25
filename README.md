@@ -346,6 +346,9 @@ Fraud Events
 
 ---
 
+## Team Contribution 
+
+
 | Team Member | Main Contributions | 
 |---|---| 
 | Yvonne Frankort | Wireframes, database structure, frontend/backend features, camera readiness checks, camera alerts, gaze calibration, gaze/pose alerts , backlog management, documenting weekly reports | 
