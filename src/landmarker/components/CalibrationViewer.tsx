@@ -95,7 +95,7 @@ vector=${debug.vectorMagnitude.toFixed(3)}
         position: "relative",
         width: "100%",
         maxWidth: "1200px",
-        height: "80vh",
+        height: "60vh",
         margin: "0 auto",
       }}
     >
@@ -214,83 +214,6 @@ vector=${debug.vectorMagnitude.toFixed(3)}
             </>
           )}
       </div>
-
-      {/* SAMPLE LOG BOX */}
-      {calibration.state !== "ABORTED" && (
-        <pre
-          style={{
-            position: "absolute",
-            top: "10px",
-            right: "10px",
-            width: "300px",
-            height: "300px",
-            background: "rgba(0,0,0,0.6)",
-            color: "white",
-            padding: "10px",
-            borderRadius: "4px",
-            fontSize: "0.75rem",
-            overflowY: "auto",
-            whiteSpace: "pre-wrap",
-            zIndex: 9999,
-          }}
-        >
-          {sampleLog}
-        </pre>
-      )}
-
-      {/* CALIBRATION LOGS */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          left: "10px",
-          background: "rgba(0,0,0,0.6)",
-          color: "white",
-          padding: "6px 10px",
-          borderRadius: "4px",
-          fontSize: "0.8rem",
-          zIndex: 9999,
-        }}
-      >
-        {calibration.state === "ABORTED" ? (
-          <div>Calibration aborted</div>
-        ) : (
-          <>
-            <div>State: {calibration.state}</div>
-            <div>Collected: {calibration.collected}/{calibration.total}</div>
-            <div>Variance: {calibration.variance.toFixed(4)}</div>
-            <div>Spread: {calibration.spread.toFixed(4)}</div>
-            <div>Cooperating: {calibration.cooperating ? "yes" : "no"}</div>
-            {baseline && (
-              <div>
-                Baseline: ({baseline.x.toFixed(3)}, {baseline.y.toFixed(3)})
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* PERFORMANCE DEBUG */}
-      {calibration.state !== "ABORTED" && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "10px",
-            left: "380px",
-            background: "rgba(0,0,0,0.6)",
-            color: "white",
-            padding: "6px 10px",
-            borderRadius: "4px",
-            fontSize: "0.75rem",
-            lineHeight: "1.2rem",
-            zIndex: 9999,
-          }}
-        >
-          <div>FPS: {debug.fps.toFixed(1)}</div>
-          <div>Throttle: {debug.throttle.toFixed(1)} ms</div>
-          <div>Detect: {debug.detectionTime.toFixed(2)} ms</div>
-        </div>
-      )}
 
       {/* CALIBRATE BUTTON */}
       <button
