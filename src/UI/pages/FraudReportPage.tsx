@@ -181,6 +181,9 @@ function FraudReportPage() {
             .select(`
                 student_id,
                 exam_id,
+                Exam!inner(
+                    course_id
+                ),
                 Fraud_Events(
                     id,
                     event_type,
@@ -189,6 +192,7 @@ function FraudReportPage() {
                     timestamp
                 )
             `)
+            .eq("Exam.course_id", selectedCourse)
 
         if (error) {
             console.error(error)
